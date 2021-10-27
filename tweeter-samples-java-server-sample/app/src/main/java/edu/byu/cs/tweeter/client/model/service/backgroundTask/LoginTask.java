@@ -7,8 +7,12 @@ import android.util.Log;
 
 import java.io.IOException;
 
+import edu.byu.cs.tweeter.client.model.service.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
+import edu.byu.cs.tweeter.model.net.request.LoginRequest;
+import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.util.FakeData;
 import edu.byu.cs.tweeter.util.Pair;
 
@@ -61,6 +65,13 @@ public class LoginTask extends BackgroundTask {
     }
 
     private Pair<User, AuthToken> doLogin() {
+        LoginRequest loginRequest = new LoginRequest(this.username, this.password);
+        LoginResponse loginResponse;
+        try {
+            loginResponse = serverFacade.login(loginRequest, "Need a URL");
+        } catch (IOException | TweeterRemoteException e) {
+            e.printStackTrace();
+        }
         loggedInUser = getFakeData().getFirstUser();
         authToken = getFakeData().getAuthToken();
         return new Pair<>(loggedInUser, authToken);

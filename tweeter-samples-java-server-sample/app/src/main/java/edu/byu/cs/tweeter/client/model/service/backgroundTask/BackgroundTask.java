@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 
 import java.io.IOException;
 
+import edu.byu.cs.tweeter.client.model.service.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.util.FakeData;
 
@@ -18,6 +19,7 @@ public abstract class BackgroundTask implements Runnable {
     public static final String SUCCESS_KEY = "success";
     public static final String MESSAGE_KEY = "message";
     public static final String EXCEPTION_KEY = "exception";
+    ServerFacade serverFacade = new ServerFacade();
 
 
     /**
