@@ -23,7 +23,7 @@ public class RegisterPresenter extends SuperPresenter implements RegisterService
     public void registerSuccess(AuthToken authToken, User user) {
         ((AuthenticationView)view).navigateToUser(user);
         ((AuthenticationView)view).clearErrorMessage();
-        ((AuthenticationView)view).displayInfoMessage("Hello " + user.alias);
+        ((AuthenticationView)view).displayInfoMessage("Hello " + user.getAlias());
     }
 
     private String validateRegistration(String firstName, String lastName, String alias, String password, ImageView imageToUpload) {

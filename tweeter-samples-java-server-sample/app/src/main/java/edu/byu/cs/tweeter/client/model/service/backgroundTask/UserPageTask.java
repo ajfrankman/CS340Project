@@ -6,7 +6,7 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.util.Pair;
+import edu.byu.cs.tweeter.model.util.Pair;
 
 public abstract class UserPageTask extends PagedTask<User> {
 
@@ -14,17 +14,12 @@ public abstract class UserPageTask extends PagedTask<User> {
      * The user whose following is being retrieved.
      * (This can be any user, not just the currently logged-in user.)
      */
-    private User targetUser;
+    protected User targetUser;
 
     public UserPageTask(Handler messageHandler, AuthToken authToken, int limit, User lastItem, User targetUser) {
         super(messageHandler, authToken, limit, lastItem);
         this.targetUser = targetUser;
 
-    }
-
-    @Override
-    protected Pair<List<User>, Boolean> getItems() {
-        return getFakeData().getPageOfUsers(lastItem, limit, targetUser);
     }
 
     @Override

@@ -8,7 +8,8 @@ import java.util.stream.Collectors;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.util.Pair;
+import edu.byu.cs.tweeter.model.util.Pair;
+import edu.byu.cs.tweeter.model.util.FakeData;
 
 public abstract class StatusPageTask extends PagedTask<Status> {
     /**
@@ -20,11 +21,6 @@ public abstract class StatusPageTask extends PagedTask<Status> {
     public StatusPageTask(Handler messageHandler, AuthToken authToken, int limit, Status lastItem, User targetUser) {
         super(messageHandler, authToken, limit, lastItem);
         this.targetUser = targetUser;
-    }
-
-    @Override
-    protected Pair<List<Status>, Boolean> getItems() {
-        return getFakeData().getPageOfStatus(lastItem, limit);
     }
 
     @Override

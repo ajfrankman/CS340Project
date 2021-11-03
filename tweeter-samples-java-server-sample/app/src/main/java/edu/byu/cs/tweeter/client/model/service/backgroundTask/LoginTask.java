@@ -13,8 +13,8 @@ import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
-import edu.byu.cs.tweeter.util.FakeData;
-import edu.byu.cs.tweeter.util.Pair;
+import edu.byu.cs.tweeter.model.util.FakeData;
+import edu.byu.cs.tweeter.model.util.Pair;
 
 /**
  * Background task that logs in a user (i.e., starts a session).
@@ -22,6 +22,8 @@ import edu.byu.cs.tweeter.util.Pair;
 public class LoginTask extends BackgroundTask {
 
     private static final String LOG_TAG = "LoginTask";
+
+    private static final String URL_PATH = "/login";
 
 
     public static final String USER_KEY = "user";
@@ -43,10 +45,20 @@ public class LoginTask extends BackgroundTask {
     private User loggedInUser;
     private AuthToken authToken;
 
+
+
     public LoginTask(String username, String password, Handler messageHandler) {
         super(messageHandler);
         this.username = username;
         this.password = password;
+    }
+
+    ServerFacade getServerFacade() {
+        if(serverFacade == null) {
+            serverFacade = new ServerFacade();
+        }
+
+        return serverFacade;
     }
 
     @Override
@@ -66,14 +78,15 @@ public class LoginTask extends BackgroundTask {
 
     private Pair<User, AuthToken> doLogin() {
         LoginRequest loginRequest = new LoginRequest(this.username, this.password);
-        LoginResponse loginResponse;
+        LoginResponse loginResponse = null;
         try {
-            loginResponse = serverFacade.login(loginRequest, "Need a URL");
+            loginResponse = getServerFacade().login(loginRequest,URL_PATH);
         } catch (IOException | TweeterRemoteException e) {
             e.printStackTrace();
         }
-        loggedInUser = getFakeData().getFirstUser();
-        authToken = getFakeData().getAuthToken();
+
+        loggedInUser = loginResponse.getUser();
+        authToken = loginResponse.getAuthToken();
         return new Pair<>(loggedInUser, authToken);
     }
 }

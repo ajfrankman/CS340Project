@@ -6,7 +6,7 @@ import android.util.Log;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.util.FakeData;
+import edu.byu.cs.tweeter.model.util.FakeData;
 
 /**
  * Background task that returns the profile for a specified user.

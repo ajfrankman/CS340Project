@@ -9,8 +9,8 @@ import java.io.IOException;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.util.FakeData;
-import edu.byu.cs.tweeter.util.Pair;
+import edu.byu.cs.tweeter.model.util.FakeData;
+import edu.byu.cs.tweeter.model.util.Pair;
 
 /**
  * Background task that creates a new user account and logs in the new user (i.e., starts a session).

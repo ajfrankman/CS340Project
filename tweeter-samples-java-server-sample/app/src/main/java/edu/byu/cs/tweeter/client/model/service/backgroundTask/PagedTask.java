@@ -9,7 +9,7 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.util.Pair;
+import edu.byu.cs.tweeter.model.util.Pair;
 
 
 public abstract class PagedTask<T> extends AuthorizedTask {
@@ -35,7 +35,7 @@ public abstract class PagedTask<T> extends AuthorizedTask {
 
     public static final String ITEMS_KEY = "followees";
     public static final String MORE_PAGES_KEY = "more-pages";
-
+/home/debuguser/School/CS340/MileStones/CS340Project/tweeter-samples-java-server-sample/app/src/main/java/edu/byu/cs/tweeter/client/model/service/backgroundTask/PagedTask.java
     public PagedTask(Handler messageHandler, AuthToken authToken, int limit, T lastItem) {
         super(messageHandler, authToken);
         this.limit = limit;

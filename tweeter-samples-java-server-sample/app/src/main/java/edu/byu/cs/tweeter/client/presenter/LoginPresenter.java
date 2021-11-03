@@ -16,7 +16,7 @@ public class LoginPresenter extends SuperPresenter implements LoginService.Login
     public void logoutSucceeded(AuthToken authToken, User user) {
         ((AuthenticationView)view).navigateToUser(user);
         ((AuthenticationView)view).clearErrorMessage();
-        ((AuthenticationView)view).displayInfoMessage("Hello" + user.alias);
+        ((AuthenticationView)view).displayInfoMessage("Hello" + user.getAlias());
     }
 
     private String validateLogin(String alias, String password) {

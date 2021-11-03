@@ -11,7 +11,7 @@ import java.io.IOException;
 
 import edu.byu.cs.tweeter.client.model.service.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.User;
-import edu.byu.cs.tweeter.util.FakeData;
+import edu.byu.cs.tweeter.model.util.FakeData;
 
 public abstract class BackgroundTask implements Runnable {
     
