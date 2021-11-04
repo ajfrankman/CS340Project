@@ -60,7 +60,4 @@ public class GetFollowingTask extends UserPageTask {
         
         return responsePair;
     }
-
-
-
 }

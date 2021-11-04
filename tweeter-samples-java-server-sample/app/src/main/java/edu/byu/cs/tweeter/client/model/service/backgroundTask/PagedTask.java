@@ -14,8 +14,6 @@ import edu.byu.cs.tweeter.model.util.Pair;
 
 public abstract class PagedTask<T> extends AuthorizedTask {
 
-
-
     /**
      * Maximum number of followers to return (i.e., page size).
      */
@@ -35,7 +33,7 @@ public abstract class PagedTask<T> extends AuthorizedTask {
 
     public static final String ITEMS_KEY = "followees";
     public static final String MORE_PAGES_KEY = "more-pages";
-/home/debuguser/School/CS340/MileStones/CS340Project/tweeter-samples-java-server-sample/app/src/main/java/edu/byu/cs/tweeter/client/model/service/backgroundTask/PagedTask.java
+
     public PagedTask(Handler messageHandler, AuthToken authToken, int limit, T lastItem) {
         super(messageHandler, authToken);
         this.limit = limit;
