@@ -11,7 +11,6 @@ import edu.byu.cs.tweeter.model.domain.User;
  * BackgroundTaskUtils contains utility methods needed by background tasks.
  */
 public class BackgroundTaskUtils {
-
     private static final String LOG_TAG = "BackgroundTaskUtils";
 
     /**

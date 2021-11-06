@@ -25,9 +25,8 @@ public abstract class StatusPageTask extends PagedTask<Status> {
 
     @Override
     protected List<User> convertItemsToUsers(List<Status> items) {
-//        List<User> users = items.stream().map(x -> x.user).collect(Collectors.toList());
-//        return users;
-        return null;
+        List<User> users = items.stream().map(x -> x.user).collect(Collectors.toList());
+        return users;
 
     }
 }
