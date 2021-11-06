@@ -6,9 +6,11 @@ import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
 import edu.byu.cs.tweeter.model.net.request.FollowersRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
+import edu.byu.cs.tweeter.model.net.request.StoriesRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
+import edu.byu.cs.tweeter.model.net.response.StoriesResponse;
 
 /**
  * Acts as a Facade to the Tweeter server. All network requests to the server should go through
@@ -72,6 +74,27 @@ public class ServerFacade {
             throws IOException, TweeterRemoteException {
 
         FollowersResponse response = clientCommunicator.doPost(urlPath, request, null, FollowersResponse.class);
+
+        if(response.isSuccess()) {
+            return response;
+        } else {
+            throw new RuntimeException(response.getMessage());
+        }
+    }
+
+    /**
+     * Returns the stories that the user specified in the request is following. Uses information in
+     * the request object to limit the number of stories returned and to return the next set of
+     * stories after any that were returned in a previous request.
+     *
+     * @param request contains information about the user whose stories are to be returned and any
+     *                other information required to satisfy the request.
+     * @return the stories.
+     */
+    public StoriesResponse getStories(StoriesRequest request, String urlPath)
+            throws IOException, TweeterRemoteException {
+
+        StoriesResponse response = clientCommunicator.doPost(urlPath, request, null, StoriesResponse.class);
 
         if(response.isSuccess()) {
             return response;

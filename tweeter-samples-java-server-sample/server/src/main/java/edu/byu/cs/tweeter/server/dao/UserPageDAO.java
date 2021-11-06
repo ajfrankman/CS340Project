@@ -13,7 +13,7 @@ import edu.byu.cs.tweeter.model.util.FakeData;
 /**
  * A DAO for accessing 'following' data from the database.
  */
-public class FollowDAO {
+public class UserPageDAO {
 
     /**
      * Gets the count of users from the database that the user specified is following. The
@@ -22,7 +22,7 @@ public class FollowDAO {
      * @param follower the User whose count of how many following is desired.
      * @return said count.
      */
-    public Integer getFolloweeCount(User follower) {
+    public Integer getFollowingCount(User follower) {
         // TODO: uses the dummy data.  Replace with a real implementation.
         assert follower != null;
         return getDummyFollowees().size();
@@ -88,7 +88,7 @@ public class FollowDAO {
      *                other information required to satisfy the request.
      * @return the followees.
      */
-    public FollowingResponse getFollowees(FollowingRequest request) {
+    public FollowingResponse getFollowing(FollowingRequest request) {
         // TODO: Generates dummy data. Replace with a real implementation.
         assert request.getLimit() > 0;
         assert request.getFollowerAlias() != null;
