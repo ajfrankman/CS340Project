@@ -5,4 +5,20 @@ import edu.byu.cs.tweeter.model.domain.User;
 public class UserResponse extends Response {
 
     private User user;
+
+    //Unsuccessful
+    public UserResponse(String message) {
+        super(false, message);
+    }
+
+    //Successful
+    public UserResponse(User user) {
+        super(true, null);
+        this.user = user;
+    }
+
+
+    public User getUser() {
+        return user;
+    }
 }

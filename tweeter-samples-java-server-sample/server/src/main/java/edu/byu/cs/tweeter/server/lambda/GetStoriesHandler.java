@@ -10,8 +10,8 @@ import edu.byu.cs.tweeter.server.service.StatusPageService;
 public class GetStoriesHandler implements RequestHandler<StoriesRequest, StoriesResponse> {
 
     @Override
-    public StoriesResponse handleRequest(StoriesRequest request, Context context) {
+    public StoriesResponse handleRequest(StoriesRequest storiesRequest, Context context) {
         StatusPageService statusPageService = new StatusPageService();
-        return statusPageService.getStories(request);
+        return statusPageService.getStories(storiesRequest);
     }
 }
