@@ -19,7 +19,7 @@ public abstract class BackgroundTask implements Runnable {
     public static final String SUCCESS_KEY = "success";
     public static final String MESSAGE_KEY = "message";
     public static final String EXCEPTION_KEY = "exception";
-    ServerFacade serverFacade = new ServerFacade();
+    //ServerFacade serverFacade = new ServerFacade();
 
 
     /**

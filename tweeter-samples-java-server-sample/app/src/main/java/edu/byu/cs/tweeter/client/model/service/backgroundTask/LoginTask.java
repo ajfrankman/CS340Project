@@ -24,10 +24,10 @@ public class LoginTask extends BackgroundTask {
     private static final String LOG_TAG = "LoginTask";
 
     private static final String URL_PATH = "/login";
-
-
     public static final String USER_KEY = "user";
     public static final String AUTH_TOKEN_KEY = "auth-token";
+
+    ServerFacade serverFacade;
 
     /**
      * The user's username (or "alias" or "handle"). E.g., "@susan".

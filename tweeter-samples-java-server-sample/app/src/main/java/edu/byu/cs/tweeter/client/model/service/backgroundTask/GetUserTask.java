@@ -42,6 +42,6 @@ public class GetUserTask extends AuthorizedTask {
 
     @Override
     protected void runTask() {
-        // Only needed becuase it will have actual code whe we aren't using dummy data.
+        // Only needed becuase it will have actual code when we aren't using dummy data.
     }
 }

@@ -7,8 +7,12 @@ import android.util.Log;
 
 import java.io.IOException;
 
+import edu.byu.cs.tweeter.client.model.service.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
+import edu.byu.cs.tweeter.model.net.request.RegisterRequest;
+import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.model.util.FakeData;
 import edu.byu.cs.tweeter.model.util.Pair;
 
@@ -18,9 +22,11 @@ import edu.byu.cs.tweeter.model.util.Pair;
 public class RegisterTask extends BackgroundTask {
     private static final String LOG_TAG = "RegisterTask";
 
+    private static final String URL_PATH = "/register";
     public static final String USER_KEY = "user";
     public static final String AUTH_TOKEN_KEY = "auth-token";
 
+    ServerFacade serverFacade;
     /**
      * The user's first name.
      */
@@ -59,7 +65,13 @@ public class RegisterTask extends BackgroundTask {
         this.image = image;
     }
 
+    ServerFacade getServerFacade() {
+        if(serverFacade == null) {
+            serverFacade = new ServerFacade();
+        }
 
+        return serverFacade;
+    }
 
     @Override
     protected void loadMessageBundle(Bundle msgBundle) {
@@ -78,8 +90,17 @@ public class RegisterTask extends BackgroundTask {
     }
 
     private Pair<User, AuthToken> doRegister() {
-        User registeredUser = getFakeData().getFirstUser();
-        AuthToken authToken = getFakeData().getAuthToken();
+
+        RegisterRequest registerRequest = new RegisterRequest(this.username, this.password, this.username, this.password, this.image);
+        RegisterResponse registerResponse = null;
+        try {
+            registerResponse = getServerFacade().register(registerRequest, URL_PATH);
+        } catch (IOException | TweeterRemoteException e) {
+            e.printStackTrace();
+        }
+
+        registeredUser = registerResponse.getRegisteredUser();
+        authToken = registerResponse.getAuthToken();
         return new Pair<>(registeredUser, authToken);
     }
 

@@ -9,7 +9,6 @@ import edu.byu.cs.tweeter.server.service.StatusPageService;
 
 public class GetFeedHandler implements RequestHandler<FeedRequest, FeedResponse> {
 
-
     @Override
     public FeedResponse handleRequest(FeedRequest request, Context context) {
         StatusPageService statusPageService = new StatusPageService();
