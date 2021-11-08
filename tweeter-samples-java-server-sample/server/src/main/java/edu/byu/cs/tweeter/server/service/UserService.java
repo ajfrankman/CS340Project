@@ -1,10 +1,12 @@
 package edu.byu.cs.tweeter.server.service;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
+import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowRequest;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
 import edu.byu.cs.tweeter.model.net.request.LogoutRequest;
+import edu.byu.cs.tweeter.model.net.request.PostStatusRequest;
 import edu.byu.cs.tweeter.model.net.request.RegisterRequest;
 import edu.byu.cs.tweeter.model.net.request.UnfollowRequest;
 import edu.byu.cs.tweeter.model.net.request.UserRequest;
@@ -12,6 +14,7 @@ import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
+import edu.byu.cs.tweeter.model.net.response.PostStatusResponse;
 import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
 import edu.byu.cs.tweeter.model.net.response.UserResponse;
@@ -53,7 +56,10 @@ public class UserService {
         return new UnfollowResponse();
     }
 
-
+    public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {
+        // TODO: Handle the status and stuff
+        return new PostStatusResponse();
+    }
     /**
      * Returns the dummy user to be returned by the login/register operation.
      * This is written as a separate method to allow mocking of the dummy user.
@@ -63,6 +69,10 @@ public class UserService {
     User getDummyUser() {
         return getFakeData().getFirstUser();
     }
+
+//    Status getDummyStatus() {
+//        return getFakeData().getPageOfStatus(null, 1).getFirst().get(0);
+//    }
 
     /**
      * Returns the dummy auth token to be returned by the login/register operation.

@@ -15,10 +15,11 @@ public abstract class CountTask extends AuthorizedTask {
      * The user whose follower count is being retrieved.
      * (This can be any user, not just the currently logged-in user.)
      */
-    private User targetUser;
+    protected User targetUser;
 
     public CountTask(Handler messageHandler, AuthToken authToken, User targetUser) {
         super(messageHandler, authToken);
+        this.targetUser = targetUser;
     }
 
     @Override
@@ -30,4 +31,6 @@ public abstract class CountTask extends AuthorizedTask {
     protected void runTask() throws IOException {
 
     }
+
+    public abstract int getCount();
 }
