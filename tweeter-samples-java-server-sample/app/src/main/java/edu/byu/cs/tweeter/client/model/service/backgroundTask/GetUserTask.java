@@ -42,10 +42,11 @@ public class GetUserTask extends AuthorizedTask {
         UserResponse userResponse = null;
         try {
             userResponse = getServerFacade().getUser(userRequest, URL_PATH);
+            BackgroundTaskUtils.loadImage(userResponse.getUser());
         } catch (IOException | TweeterRemoteException e) {
             e.printStackTrace();
+            return null;
         }
-
         return userResponse.getUser();
     }
 

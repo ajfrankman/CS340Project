@@ -23,7 +23,9 @@ import edu.byu.cs.tweeter.model.util.FakeData;
 public class UserService {
 
     public LoginResponse login(LoginRequest request) {
-
+        if (request.getPassword() == null || request.getUsername() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         // TODO: Generates dummy data. Replace with a real implementation.
         User user = getDummyUser();
         AuthToken authToken = getDummyAuthToken();
@@ -31,7 +33,9 @@ public class UserService {
     }
 
     public RegisterResponse register(RegisterRequest request) {
-
+        if (request.getAlias() == null || request.getPassword() == null || request.getFirstName() == null || request.getLastName() == null || request.getImageBytesBase64() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         // TODO: Generates dummy data. Replace with a real implementation.
         User registeredUser = getDummyUser();
         AuthToken authToken = getDummyAuthToken();
@@ -39,27 +43,43 @@ public class UserService {
     }
 
     public LogoutResponse logout(LogoutRequest request) {
+        if (request.getAuthToken() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         // TODO: Replace with real Implementation
         return new LogoutResponse();
     }
-    
+
     public UserResponse getUser(UserRequest request) {
-        User user = getDummyUser();
+        if (request.getAlias() == null || request.getAuthToken() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
+        User user = getFakeData().findUserByAlias(request.getAlias());
         return new UserResponse(user);
     }
 
     public FollowResponse follow(FollowRequest request) {
+        if (request.getAuthToken() == null || request.getFollowee() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         return new FollowResponse();
     }
 
     public UnfollowResponse unfollow(UnfollowRequest request) {
+        if (request.getAuthToken() == null || request.getFollowee() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         return new UnfollowResponse();
     }
 
     public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {
         // TODO: Handle the status and stuff
+        if (postStatusRequest.getStatus() == null || postStatusRequest.getAuthToken() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         return new PostStatusResponse();
     }
+
     /**
      * Returns the dummy user to be returned by the login/register operation.
      * This is written as a separate method to allow mocking of the dummy user.

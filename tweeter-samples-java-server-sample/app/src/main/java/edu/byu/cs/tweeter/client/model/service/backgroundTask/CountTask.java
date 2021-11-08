@@ -24,7 +24,7 @@ public abstract class CountTask extends AuthorizedTask {
 
     @Override
     protected void loadMessageBundle(Bundle msgBundle) {
-        msgBundle.putInt(COUNT_KEY, 20);
+        msgBundle.putInt(COUNT_KEY, getCount());
     }
 
     @Override

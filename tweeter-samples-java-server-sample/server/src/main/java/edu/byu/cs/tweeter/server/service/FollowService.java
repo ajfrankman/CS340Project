@@ -27,6 +27,9 @@ public class FollowService {
      * @return the followees.
      */
     public FollowingResponse getFollowees(FollowingRequest request) {
+        if (request.getLimit() < 1 || request.getFollowerAlias() == null || request.getLastFolloweeAlias() == null || request.getAuthToken() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         return getFollowingDAO().getFollowing(request);
     }
 
@@ -40,18 +43,30 @@ public class FollowService {
      * @return the followees.
      */
     public FollowersResponse getFollowers(FollowersRequest request) {
+        if (request.getLimit() < 1 || request.getFolloweeAlias() == null || request.getLastFollowerAlias() == null || request.getAuthToken() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         return getFollowingDAO().getFollowers(request);
     }
 
     public IsFollowerResponse isFollower(IsFollowerRequest request) {
+        if (request.getAuthToken() == null || request.getFollower() == null || request.getFollowee() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         return new IsFollowerResponse(true);
     }
 
     public GetFollowersCountResponse getFollowersCount(GetFollowersCountRequest request) {
+        if (request.getAuthToken() == null || request.getTargetUser() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         return new GetFollowersCountResponse(10);
     }
 
     public GetFollowingCountResponse getFollowingCount(GetFollowingCountRequest request) {
+        if (request.getAuthToken() == null || request.getTargetUser() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
         return new GetFollowingCountResponse(9);
     }
 

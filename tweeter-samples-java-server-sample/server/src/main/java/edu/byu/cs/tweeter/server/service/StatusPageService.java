@@ -8,10 +8,12 @@ import edu.byu.cs.tweeter.server.dao.StatusPageDAO;
 
 public class StatusPageService {
     public StoriesResponse getStories(StoriesRequest request) {
+        if (request.getLimit() < 1) throw new RuntimeException("Invalid request object");
         return getStatusPageDAO().getStories(request);
     }
 
     public FeedResponse getFeed(FeedRequest request) {
+        if (request.getLimit() < 1) throw new RuntimeException("Invalid request object");
         return getStatusPageDAO().getFeed(request);
     }
 

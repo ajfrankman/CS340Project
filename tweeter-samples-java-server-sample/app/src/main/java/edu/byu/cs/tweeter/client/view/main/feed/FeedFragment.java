@@ -200,7 +200,7 @@ public class FeedFragment extends Fragment implements StatusView {
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(clickable));
                             startActivity(intent);
                         } else {
-                            feedPresenter.goToUser(userAlias.getText().toString());
+                            feedPresenter.goToUser(clickable);
                         }
                     }
 
