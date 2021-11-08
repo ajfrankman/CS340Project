@@ -50,7 +50,7 @@ public class FollowService {
     }
 
     public IsFollowerResponse isFollower(IsFollowerRequest request) {
-        if (request.getAuthToken() == null || request.getFollower() == null || request.getFollowee() == null) {
+        if (request.getAuthToken() == null) {
             throw new RuntimeException("Invalid request object");
         }
         return new IsFollowerResponse(true);

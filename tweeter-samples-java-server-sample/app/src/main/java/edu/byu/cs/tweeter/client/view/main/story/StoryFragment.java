@@ -196,7 +196,7 @@ public class StoryFragment extends Fragment implements StatusView {
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(clickable));
                             startActivity(intent);
                         } else {
-                            storyPresenter.goToUser(userAlias.getText().toString());
+                            storyPresenter.goToUser(clickable);
                         }
                     }
 
