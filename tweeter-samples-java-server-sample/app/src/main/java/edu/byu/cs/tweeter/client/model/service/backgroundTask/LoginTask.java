@@ -78,15 +78,15 @@ public class LoginTask extends BackgroundTask {
 
     private Pair<User, AuthToken> doLogin() {
         LoginRequest loginRequest = new LoginRequest(this.username, this.password);
-        LoginResponse loginResponse = null;
+        //LoginResponse loginResponse = null;
         try {
-            loginResponse = getServerFacade().login(loginRequest,URL_PATH);
+            LoginResponse loginResponse = getServerFacade().login(loginRequest,URL_PATH);
+            loggedInUser = loginResponse.getUser();
+            authToken = loginResponse.getAuthToken();
+            return new Pair<>(loggedInUser, authToken);
         } catch (IOException | TweeterRemoteException e) {
             e.printStackTrace();
+            return null;
         }
-
-        loggedInUser = loginResponse.getUser();
-        authToken = loginResponse.getAuthToken();
-        return new Pair<>(loggedInUser, authToken);
     }
 }

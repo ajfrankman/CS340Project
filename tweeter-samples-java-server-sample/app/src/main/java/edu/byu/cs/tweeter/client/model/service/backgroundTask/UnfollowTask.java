@@ -7,8 +7,14 @@ import android.util.Log;
 
 import java.io.IOException;
 
+import edu.byu.cs.tweeter.client.model.service.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
+import edu.byu.cs.tweeter.model.net.request.FollowRequest;
+import edu.byu.cs.tweeter.model.net.request.UnfollowRequest;
+import edu.byu.cs.tweeter.model.net.response.FollowResponse;
+import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
 
 /**
  * Background task that removes a following relationship between two users.
@@ -20,6 +26,8 @@ public class UnfollowTask extends AuthorizedTask {
     public static final String MESSAGE_KEY = "message";
     public static final String EXCEPTION_KEY = "exception";
 
+    private static final String URL_PATH = "/unfollow";
+    ServerFacade serverFacade;
 
     /**
      * The user that is being followed.
@@ -35,6 +43,13 @@ public class UnfollowTask extends AuthorizedTask {
         this.followee = followee;
     }
 
+    ServerFacade getServerFacade() {
+        if(serverFacade == null) {
+            serverFacade = new ServerFacade();
+        }
+
+        return serverFacade;
+    }
 
     @Override
     protected void loadMessageBundle(Bundle msgBundle) {
@@ -43,6 +58,17 @@ public class UnfollowTask extends AuthorizedTask {
 
     @Override
     protected void runTask() throws IOException {
+        unfollow();
+    }
 
+    private boolean unfollow() {
+        UnfollowRequest unfollowRequest = new UnfollowRequest(this.authToken, this.followee);
+        try {
+            UnfollowResponse unfollowResponse = getServerFacade().follow(unfollowRequest, URL_PATH);
+            return unfollowResponse.isSuccess();
+        } catch (IOException | TweeterRemoteException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
