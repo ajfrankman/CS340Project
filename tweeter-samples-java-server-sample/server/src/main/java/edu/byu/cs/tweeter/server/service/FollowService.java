@@ -27,7 +27,7 @@ public class FollowService {
      * @return the followees.
      */
     public FollowingResponse getFollowees(FollowingRequest request) {
-        if (request.getLimit() < 1 || request.getFollowerAlias() == null || request.getLastFolloweeAlias() == null || request.getAuthToken() == null) {
+        if (request.getLimit() < 1 || request.getFollowerAlias() == null || request.getAuthToken() == null) {
             throw new RuntimeException("Invalid request object");
         }
         return getFollowingDAO().getFollowing(request);
@@ -43,7 +43,7 @@ public class FollowService {
      * @return the followees.
      */
     public FollowersResponse getFollowers(FollowersRequest request) {
-        if (request.getLimit() < 1 || request.getFolloweeAlias() == null || request.getLastFollowerAlias() == null || request.getAuthToken() == null) {
+        if (request.getLimit() < 1 || request.getFolloweeAlias() == null || request.getAuthToken() == null) {
             throw new RuntimeException("Invalid request object");
         }
         return getFollowingDAO().getFollowers(request);

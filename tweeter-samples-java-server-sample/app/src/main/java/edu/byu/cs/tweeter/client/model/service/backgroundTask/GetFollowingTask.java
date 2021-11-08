@@ -45,7 +45,6 @@ public class GetFollowingTask extends UserPageTask {
             followingRequest = new FollowingRequest(authToken, targetUser.getAlias(), limit, null);
         } else {
             followingRequest = new FollowingRequest(authToken, targetUser.getAlias(), limit, lastItem.getAlias());
-
         }
         FollowingResponse followingResponse;
         Pair<List<User>, Boolean> responsePair = null;
