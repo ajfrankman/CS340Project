@@ -25,8 +25,6 @@ public class RegisterTask extends BackgroundTask {
     private static final String URL_PATH = "/register";
     public static final String USER_KEY = "user";
     public static final String AUTH_TOKEN_KEY = "auth-token";
-
-    ServerFacade serverFacade;
     /**
      * The user's first name.
      */
@@ -65,14 +63,6 @@ public class RegisterTask extends BackgroundTask {
         this.image = image;
     }
 
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
-    }
-
     @Override
     protected void loadMessageBundle(Bundle msgBundle) {
         msgBundle.putSerializable(USER_KEY, registeredUser);
@@ -103,5 +93,4 @@ public class RegisterTask extends BackgroundTask {
         authToken = registerResponse.getAuthToken();
         return new Pair<>(registeredUser, authToken);
     }
-
 }

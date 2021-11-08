@@ -21,7 +21,7 @@ public class FollowTask extends AuthorizedTask {
     private static final String LOG_TAG = "FollowTask";
 
     private static final String URL_PATH = "/follow";
-    ServerFacade serverFacade;
+
 
     /**
      * The user that is being followed.
@@ -35,14 +35,6 @@ public class FollowTask extends AuthorizedTask {
     public FollowTask(AuthToken authToken, User followee, Handler messageHandler) {
         super(messageHandler, authToken);
         this.followee = followee;
-    }
-
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
     }
 
     @Override

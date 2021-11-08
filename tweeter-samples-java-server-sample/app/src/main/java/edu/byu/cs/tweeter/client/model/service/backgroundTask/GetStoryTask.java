@@ -21,15 +21,7 @@ public class GetStoryTask extends StatusPageTask {
     private static final String LOG_TAG = "GetStoryTask";
 
     static final String URL_PATH = "/getstories";
-    private ServerFacade serverFacade;
 
-    public ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
-    }
 
     public GetStoryTask(AuthToken authToken, User targetUser, int limit, Status lastStatus,
                         Handler messageHandler) {

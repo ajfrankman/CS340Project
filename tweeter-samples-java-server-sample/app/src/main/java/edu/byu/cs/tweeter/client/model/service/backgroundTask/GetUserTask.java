@@ -29,8 +29,6 @@ public class GetUserTask extends AuthorizedTask {
      */
     private String alias;
 
-    ServerFacade serverFacade;
-
     public GetUserTask(AuthToken authToken, String alias, Handler messageHandler) {
         super(messageHandler, authToken);
         this.alias = alias;
@@ -48,14 +46,6 @@ public class GetUserTask extends AuthorizedTask {
             return null;
         }
         return userResponse.getUser();
-    }
-
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
     }
 
     @Override

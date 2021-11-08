@@ -25,8 +25,6 @@ public class LogoutTask extends AuthorizedTask {
     public static final String MESSAGE_KEY = "message";
     public static final String EXCEPTION_KEY = "exception";
 
-    ServerFacade serverFacade;
-
     /**
      * Message handler that will receive task results.
      */
@@ -34,14 +32,6 @@ public class LogoutTask extends AuthorizedTask {
 
     public LogoutTask(AuthToken authToken, Handler messageHandler) {
         super(messageHandler, authToken);
-    }
-
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
     }
 
     @Override

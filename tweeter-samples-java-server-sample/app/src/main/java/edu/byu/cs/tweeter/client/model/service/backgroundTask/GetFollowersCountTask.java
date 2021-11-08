@@ -23,19 +23,12 @@ import edu.byu.cs.tweeter.model.util.Pair;
 public class GetFollowersCountTask extends CountTask {
 
     private static final String URL_PATH = "/getfollowerscount";
-    ServerFacade serverFacade;
 
     public GetFollowersCountTask(AuthToken authToken, User targetUser, Handler messageHandler) {
         super(messageHandler,authToken, targetUser);
     }
 
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
 
-        return serverFacade;
-    }
 
     @Override
     public int getCount() {

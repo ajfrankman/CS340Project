@@ -24,7 +24,6 @@ public class PostStatusTask extends AuthorizedTask {
     public static final String MESSAGE_KEY = "message";
     public static final String EXCEPTION_KEY = "exception";
     private static final String URL_PATH = "/poststatus";
-    ServerFacade serverFacade;
 
 
     /**
@@ -40,14 +39,6 @@ public class PostStatusTask extends AuthorizedTask {
     public PostStatusTask(AuthToken authToken, Status status, Handler messageHandler) {
         super(messageHandler, authToken);
         this.status = status;
-    }
-
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
     }
 
     @Override

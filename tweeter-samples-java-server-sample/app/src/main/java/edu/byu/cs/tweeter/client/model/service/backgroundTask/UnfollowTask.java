@@ -27,8 +27,6 @@ public class UnfollowTask extends AuthorizedTask {
     public static final String EXCEPTION_KEY = "exception";
 
     private static final String URL_PATH = "/unfollow";
-    ServerFacade serverFacade;
-
     /**
      * The user that is being followed.
      */
@@ -41,14 +39,6 @@ public class UnfollowTask extends AuthorizedTask {
     public UnfollowTask(AuthToken authToken, User followee, Handler messageHandler) {
         super(messageHandler, authToken);
         this.followee = followee;
-    }
-
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
     }
 
     @Override

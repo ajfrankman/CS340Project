@@ -30,8 +30,6 @@ public class IsFollowerTask extends AuthorizedTask {
     public static final String EXCEPTION_KEY = "exception";
 
     private static final String URL_PATH = "/isfollower";
-    ServerFacade serverFacade;
-
 
     /**
      * The alleged follower.
@@ -47,14 +45,6 @@ public class IsFollowerTask extends AuthorizedTask {
         super(messageHandler, authToken);
         this.follower = follower;
         this.followee = followee;
-    }
-
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
     }
 
     @Override

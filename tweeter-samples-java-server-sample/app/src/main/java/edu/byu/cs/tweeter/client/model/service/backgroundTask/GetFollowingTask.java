@@ -23,15 +23,6 @@ public class GetFollowingTask extends UserPageTask {
     private static final String LOG_TAG = "GetFollowingTask";
 
     static final String URL_PATH = "/getfollowing";
-    private ServerFacade serverFacade;
-
-    public ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
-    }
 
     public GetFollowingTask(AuthToken authToken, User targetUser, int limit, User lastFollowee,
                             Handler messageHandler) {

@@ -27,6 +27,16 @@ public abstract class BackgroundTask implements Runnable {
      */
     private Handler messageHandler;
 
+    ServerFacade serverFacade;
+
+    ServerFacade getServerFacade() {
+        if(serverFacade == null) {
+            serverFacade = new ServerFacade();
+        }
+
+        return serverFacade;
+    }
+
     public BackgroundTask(Handler messageHandler) {
         this.messageHandler = messageHandler;
     }

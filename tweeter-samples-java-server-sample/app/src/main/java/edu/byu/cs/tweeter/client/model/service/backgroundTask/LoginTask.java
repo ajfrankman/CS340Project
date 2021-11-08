@@ -27,8 +27,6 @@ public class LoginTask extends BackgroundTask {
     public static final String USER_KEY = "user";
     public static final String AUTH_TOKEN_KEY = "auth-token";
 
-    ServerFacade serverFacade;
-
     /**
      * The user's username (or "alias" or "handle"). E.g., "@susan".
      */
@@ -51,14 +49,6 @@ public class LoginTask extends BackgroundTask {
         super(messageHandler);
         this.username = username;
         this.password = password;
-    }
-
-    ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
     }
 
     @Override

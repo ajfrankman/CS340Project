@@ -24,15 +24,7 @@ public class GetFeedTask extends StatusPageTask {
     private static final String LOG_TAG = "GetFeedTask";
 
     static final String URL_PATH = "/getfeed";
-    private ServerFacade serverFacade;
 
-    public ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
-    }
 
     public GetFeedTask(AuthToken authToken, User targetUser, int limit, Status lastStatus,
                        Handler messageHandler) {

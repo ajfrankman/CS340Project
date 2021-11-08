@@ -27,15 +27,7 @@ public class GetFollowersTask extends UserPageTask {
 
     //TODO Change this to /getfollowers
     static final String URL_PATH = "/getfollowers";
-    private ServerFacade serverFacade;
 
-    public ServerFacade getServerFacade() {
-        if(serverFacade == null) {
-            serverFacade = new ServerFacade();
-        }
-
-        return serverFacade;
-    }
 
     public GetFollowersTask(AuthToken authToken, User targetUser, int limit, User lastFollower,
                             Handler messageHandler) {
