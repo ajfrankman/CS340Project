@@ -1,3 +1,5 @@
+import static org.mockito.ArgumentMatchers.eq;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -222,13 +224,12 @@ public class M4Tests {
         };
         Mockito.doAnswer(storyAnswer).when(mockObserver).getItemsSucceeded(Mockito.anyList(), Mockito.anyBoolean());
         Mockito.doAnswer(storyAnswer).when(mockObserver).handleFailure(Mockito.any());
-
         storyService.getStory(fakeData.getFirstUser(), 10, fakeData.getFakeStatuses().get(0), mockObserver);
 
         countDownLatch.await();
         resetCountDownLatch();
 
-        Mockito.verify(mockObserver).getItemsSucceeded(Mockito.anyList(), true);
+        Mockito.verify(mockObserver).getItemsSucceeded(Mockito.anyList(), eq(true));
 
     }
 }

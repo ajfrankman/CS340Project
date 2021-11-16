@@ -20,6 +20,9 @@ public class LoginPresenter extends SuperPresenter implements LoginService.Login
     }
 
     private String validateLogin(String alias, String password) {
+        if (alias.equals("") || password.equals("")) {
+            return "Must not be empty.";
+        }
         if (alias.charAt(0) != '@') {
             return "Alias must begin with @.";
         }
