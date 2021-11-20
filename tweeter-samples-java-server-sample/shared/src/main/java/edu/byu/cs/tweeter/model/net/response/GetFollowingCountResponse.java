@@ -3,6 +3,10 @@ package edu.byu.cs.tweeter.model.net.response;
 public class GetFollowingCountResponse extends Response {
     int count;
 
+    public GetFollowingCountResponse () {
+        super(false, "default");
+    }
+
     public GetFollowingCountResponse(String message) {
         super(false, message);
     }
@@ -14,5 +18,9 @@ public class GetFollowingCountResponse extends Response {
 
     public int getCount() {
         return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
     }
 }

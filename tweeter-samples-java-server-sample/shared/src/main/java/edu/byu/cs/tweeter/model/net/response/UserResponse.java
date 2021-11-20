@@ -4,7 +4,11 @@ import edu.byu.cs.tweeter.model.domain.User;
 
 public class UserResponse extends Response {
 
-    private User user;
+    public User user;
+
+    public UserResponse() {
+        super(false, "default");
+    }
 
     //Unsuccessful
     public UserResponse(String message) {
@@ -20,5 +24,9 @@ public class UserResponse extends Response {
 
     public User getUser() {
         return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

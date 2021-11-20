@@ -7,8 +7,11 @@ import edu.byu.cs.tweeter.model.domain.Status;
 
 public class FeedResponse extends PagedResponse {
 
-    private List<Status> feed;
+    public List<Status> feed;
 
+    public FeedResponse() {
+        super(false, false);
+    }
     public FeedResponse (String message) {
         super(false, message, false);
     }
@@ -40,5 +43,9 @@ public class FeedResponse extends PagedResponse {
     @Override
     public int hashCode() {
         return Objects.hash(feed);
+    }
+
+    public void setFeed(List<Status> feed) {
+        this.feed = feed;
     }
 }

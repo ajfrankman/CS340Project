@@ -7,11 +7,11 @@ import edu.byu.cs.tweeter.model.net.request.GetFollowingCountRequest;
 import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
 import edu.byu.cs.tweeter.server.service.FollowService;
 
-public class GetFollowingCountHandler implements RequestHandler<GetFollowingCountRequest, GetFollowingCountResponse> {
+public class GetFollowingCountHandler extends BaseHandler implements RequestHandler<GetFollowingCountRequest, GetFollowingCountResponse> {
 
     @Override
     public GetFollowingCountResponse handleRequest(GetFollowingCountRequest getFollowingCountRequest, Context context) {
-        FollowService followService = new FollowService();
+        FollowService followService = new FollowService(currentFactory);
         return followService.getFollowingCount(getFollowingCountRequest);
     }
 }

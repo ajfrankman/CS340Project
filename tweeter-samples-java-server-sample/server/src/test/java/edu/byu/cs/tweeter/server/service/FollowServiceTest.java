@@ -11,7 +11,9 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
-import edu.byu.cs.tweeter.server.dao.FollowDAO;
+import edu.byu.cs.tweeter.server.dynamo.FollowDAO;
+import edu.byu.cs.tweeter.server.dynamo.DynamoDBFactory;
+
 
 public class FollowServiceTest {
 
@@ -42,7 +44,9 @@ public class FollowServiceTest {
         Mockito.when(mockFollowDAO.getFollowing(request)).thenReturn(expectedResponse);
 
         followServiceSpy = Mockito.spy(FollowService.class);
-        Mockito.when(followServiceSpy.getFollowingDAO()).thenReturn(mockFollowDAO);
+
+        // Had to remove because of new ordering of code.
+        // Mockito.when(followServiceSpy.getFollowDAO()).thenReturn(mockFollowDAO);
     }
 
     /**

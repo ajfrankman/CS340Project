@@ -9,7 +9,7 @@ import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.server.service.FollowService;
 
-public class GetFollowersHandler implements RequestHandler<FollowersRequest, FollowersResponse> {
+public class GetFollowersHandler extends BaseHandler implements RequestHandler<FollowersRequest, FollowersResponse> {
 
     /**
      * Returns the users that the user specified in the request is following. Uses information in
@@ -22,7 +22,7 @@ public class GetFollowersHandler implements RequestHandler<FollowersRequest, Fol
      */
     @Override
     public FollowersResponse handleRequest(FollowersRequest request, Context context) {
-        FollowService service = new FollowService();
+        FollowService service = new FollowService(currentFactory);
         return service.getFollowers(request);
     }
 }

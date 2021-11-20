@@ -4,8 +4,12 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class RegisterResponse extends Response{
-    User registeredUser;
-    AuthToken authToken;
+    public User registeredUser;
+    public AuthToken authToken;
+
+    public RegisterResponse() {
+        super(false, "default");
+    }
 
     public RegisterResponse(String message) { super(false, message); }
 
@@ -22,5 +26,13 @@ public class RegisterResponse extends Response{
 
     public AuthToken getAuthToken() {
         return authToken;
+    }
+
+    public void setRegisteredUser(User registeredUser) {
+        this.registeredUser = registeredUser;
+    }
+
+    public void setAuthToken(AuthToken authToken) {
+        this.authToken = authToken;
     }
 }

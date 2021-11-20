@@ -80,24 +80,6 @@ public class RegisterFragment extends Fragment implements AuthenticationView {
                 // Register and move to MainActivity.
                 try {
                     presenter.register(firstName.getText().toString(), lastName.getText().toString(), alias.getText().toString(), password.getText().toString(), imageToUpload);
-//                    validateRegistration();
-//                    errorView.setText(null);
-//                    registeringToast = Toast.makeText(getContext(), "Registering...", Toast.LENGTH_LONG);
-//                    registeringToast.show();
-//
-//                    // Convert image to byte array.
-//                    Bitmap image = ((BitmapDrawable) imageToUpload.getDrawable()).getBitmap();
-//                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//                    image.compress(Bitmap.CompressFormat.JPEG, 100, bos);
-//                    byte[] imageBytes = bos.toByteArray();
-//                    String imageBytesBase64 = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
-
-                    // Send register request.
-//                    RegisterTask registerTask = new RegisterTask(firstName.getText().toString(), lastName.getText().toString(),
-//                            alias.getText().toString(), password.getText().toString(), imageBytesBase64, new RegisterHandler());
-//
-//                    ExecutorService executor = Executors.newSingleThreadExecutor();
-//                    executor.execute(registerTask);
                 } catch (Exception e) {
                     errorView.setText(e.getMessage());
                 }

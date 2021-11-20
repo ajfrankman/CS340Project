@@ -8,7 +8,11 @@ import edu.byu.cs.tweeter.model.net.request.StoriesRequest;
 
 public class StoriesResponse extends PagedResponse {
 
-    private List<Status> stories;
+    public List<Status> stories;
+
+    public StoriesResponse() {
+        super(false, false);
+    }
 
     public StoriesResponse (String message) {
         super(false, message, false);
@@ -41,5 +45,9 @@ public class StoriesResponse extends PagedResponse {
     @Override
     public int hashCode() {
         return Objects.hash(stories);
+    }
+
+    public void setStories(List<Status> stories) {
+        this.stories = stories;
     }
 }

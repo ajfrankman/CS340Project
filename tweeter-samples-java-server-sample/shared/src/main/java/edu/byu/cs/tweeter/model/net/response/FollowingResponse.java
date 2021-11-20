@@ -11,8 +11,11 @@ import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
  */
 public class FollowingResponse extends PagedResponse {
 
-    private List<User> followees;
+    public List<User> followees;
 
+    public FollowingResponse () {
+        super(false, false);
+    }
     /**
      * Creates a response indicating that the corresponding request was unsuccessful. Sets the
      * success and more pages indicators to false.
@@ -63,5 +66,9 @@ public class FollowingResponse extends PagedResponse {
     @Override
     public int hashCode() {
         return Objects.hash(followees);
+    }
+
+    public void setFollowees(List<User> followees) {
+        this.followees = followees;
     }
 }

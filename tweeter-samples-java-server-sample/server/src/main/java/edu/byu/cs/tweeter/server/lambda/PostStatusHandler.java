@@ -9,11 +9,11 @@ import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.model.net.response.PostStatusResponse;
 import edu.byu.cs.tweeter.server.service.UserService;
 
-public class PostStatusHandler implements RequestHandler<PostStatusRequest, PostStatusResponse> {
+public class PostStatusHandler extends BaseHandler implements RequestHandler<PostStatusRequest, PostStatusResponse> {
 
     @Override
     public PostStatusResponse handleRequest(PostStatusRequest postStatusRequest, Context context) {
-        UserService userService = new UserService();
+        UserService userService = new UserService(currentFactory);
         return userService.postStatus(postStatusRequest);
     }
 }

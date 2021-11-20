@@ -7,7 +7,11 @@ import edu.byu.cs.tweeter.model.domain.User;
 
 public class FollowersResponse extends PagedResponse {
 
-    private List<User> followers;
+    public List<User> followers;
+
+    public FollowersResponse() {
+        super(false, false);
+    }
 
     /**
      * Creates a response indicating that the corresponding request was unsuccessful. Sets the
@@ -59,5 +63,9 @@ public class FollowersResponse extends PagedResponse {
     @Override
     public int hashCode() {
         return Objects.hash(followers);
+    }
+
+    public void setFollowers(List<User> followers) {
+        this.followers = followers;
     }
 }

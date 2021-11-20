@@ -1,46 +1,50 @@
-package edu.byu.cs.tweeter.server.dao;
+package edu.byu.cs.tweeter.server.dynamo;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.FollowRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowersRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
+import edu.byu.cs.tweeter.model.net.request.GetFollowersCountRequest;
+import edu.byu.cs.tweeter.model.net.request.GetFollowingCountRequest;
+import edu.byu.cs.tweeter.model.net.request.IsFollowerRequest;
+import edu.byu.cs.tweeter.model.net.request.UnfollowRequest;
+import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
+import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
+import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
+import edu.byu.cs.tweeter.model.net.response.IsFollowerResponse;
+import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
 import edu.byu.cs.tweeter.model.util.FakeData;
+import edu.byu.cs.tweeter.server.factoryinterfaces.FollowDAOInterface;
 
 /**
  * A DAO for accessing 'following' data from the database.
  */
-public class FollowDAO {
+public class FollowDAO implements FollowDAOInterface {
 
-    /**
-     * Gets the count of users from the database that the user specified is following. The
-     * current implementation uses generated data and doesn't actually access a database.
-     *
-     * @param follower the User whose count of how many following is desired.
-     * @return said count.
-     */
-    public Integer getFollowingCount(User follower) {
-        // TODO: uses the dummy data.  Replace with a real implementation.
-        assert follower != null;
-        return getDummyFollowees().size();
+    public IsFollowerResponse isFollower(IsFollowerRequest request) {
+        return new IsFollowerResponse(true);
     }
 
-    /**
-     * Gets the count of users from the database that the user specified is following. The
-     * current implementation uses generated data and doesn't actually access a database.
-     *
-     * @param follower the User whose count of how many following is desired.
-     * @return said count.
-     */
-    public Integer getFollowerCount(User follower) {
-        // TODO: uses the dummy data.  Replace with a real implementation.
-        assert follower != null;
-        return getDummyFollowees().size();
+    public GetFollowingCountResponse getFollowingCount(GetFollowingCountRequest request) {
+        return new GetFollowingCountResponse(9);
     }
 
+    public GetFollowersCountResponse getFollowersCount(GetFollowersCountRequest request) {
+        return new GetFollowersCountResponse(8);
+    }
+
+    public FollowResponse follow(FollowRequest request) {
+        return new FollowResponse();
+    }
+
+    public UnfollowResponse unfollow(UnfollowRequest request) {
+        return new UnfollowResponse();
+    }
 
     /**
      * Gets the users from the database that the user specified in the request is following. Uses
@@ -76,7 +80,6 @@ public class FollowDAO {
 
         return new FollowersResponse(responseFollowers, hasMorePages);
     }
-
 
     /**
      * Gets the users from the database that the user specified in the request is following. Uses
@@ -172,7 +175,6 @@ public class FollowDAO {
 
         return followersIndex;
     }
-
 
     /**
      * Returns the list of dummy followee data. This is written as a separate method to allow
