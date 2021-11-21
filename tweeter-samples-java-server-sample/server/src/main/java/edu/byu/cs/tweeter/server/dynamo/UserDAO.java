@@ -22,8 +22,13 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.model.Get;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -32,17 +37,63 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 
 import java.io.ByteArrayInputStream;
 import java.net.URL;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.UUID;
 
 public class UserDAO implements UserDAOInterface {
+
+    // TODO remove when no longer used
+    private static final String MALE_IMAGE_URL = "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png";
+
+
 
     public LoginResponse login(LoginRequest request) {
         if (request.getPassword() == null || request.getUsername() == null) {
             throw new RuntimeException("Invalid request object");
         }
-        // TODO: Generates dummy data. Replace with a real implementation.
-        User user = getDummyUser();
-        AuthToken authToken = getDummyAuthToken();
+
+        // get the user table
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table userTable = dynamoDB.getTable("users");
+
+        // get photo link from s3
+        AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
+        String fileName = String.format("%s_profile_image", request.getUsername());
+        URL url = s3.getUrl("ppictures", fileName);
+
+        System.out.println("filename: " + fileName);
+
+        // get User info
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", request.getUsername());
+        User user;
+        try {
+            Item outcome = userTable.getItem(spec);
+            System.out.println("GetItem succeeded: " + outcome);
+            user = new User(outcome.getString("firstName"), outcome.getString("lastName"), outcome.getString("user_handle"), url.toString());
+        } catch (Exception e) {
+            System.err.println("Unable to read item");
+            throw e;
+        }
+
+        // Generate Authtoken
+        LocalDateTime localDateTime = LocalDateTime.now();
+        AuthToken authToken = new AuthToken(UUID.randomUUID().toString(), localDateTime.toString());
+        // Put authtoken in table
+        Table authTable = dynamoDB.getTable("auth_table");
+        try {
+            PutItemOutcome outcome = authTable.putItem(new Item().withPrimaryKey("authtoken", authToken.getToken()).with("time", authToken.getDatetime()));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw e;
+        }
+
+//        AuthToken authToken = getDummyAuthToken();
+
         return new LoginResponse(user, authToken);
     }
 
@@ -57,12 +108,13 @@ public class UserDAO implements UserDAOInterface {
         Table table = dynamoDB.getTable("users");
         try {
             PutItemOutcome outcome = table.putItem(new Item()
-                    .withPrimaryKey("user_handle", "@" + request.getAlias())
+                    .withPrimaryKey("user_handle", request.getAlias())
                     .with("firstName", request.getFirstName())
                     .with("lastName", request.getLastName())
                     .with("password", request.getPassword()));
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            throw e;
         }
 
         // Add Image to s3 Bucket
@@ -92,10 +144,21 @@ public class UserDAO implements UserDAOInterface {
             System.out.println(e.getMessage());
         }
 
-
+        // Don't bother grabbing the user from table. This is faster.
         User registeredUser = new User(request.getFirstName(), request.getLastName(), request.getAlias(), url.toString());
-//        User registeredUser = getDummyUser();
-        AuthToken authToken = getDummyAuthToken();
+
+        // Generate Authtoken
+        LocalDateTime localDateTime = LocalDateTime.now();
+        AuthToken authToken = new AuthToken(UUID.randomUUID().toString(), localDateTime.toString());
+        // Put authtoken in table
+        Table authTable = dynamoDB.getTable("auth_table");
+        try {
+            PutItemOutcome outcome = authTable.putItem(new Item().withPrimaryKey("authtoken", authToken.getToken()).with("time", authToken.getDatetime()));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw e;
+        }
+
         return new RegisterResponse(registeredUser, authToken);
     }
 
@@ -103,7 +166,8 @@ public class UserDAO implements UserDAOInterface {
         if (request.getAuthToken() == null) {
             throw new RuntimeException("Invalid request object");
         }
-        // TODO: Replace with real Implementation
+
+        // TODO: remove authtoken
         return new LogoutResponse();
     }
 
@@ -111,7 +175,31 @@ public class UserDAO implements UserDAOInterface {
         if (request.getAlias() == null || request.getAuthToken() == null) {
             throw new RuntimeException("Invalid request object");
         }
-        User user = getFakeData().findUserByAlias(request.getAlias());
+
+        // get the user table
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table userTable = dynamoDB.getTable("users");
+
+        // get photo link from s3
+        AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
+        String fileName = String.format("%s_profile_image", request.getAlias());
+        URL url = s3.getUrl("ppictures", fileName);
+
+        System.out.println("filename: " + fileName);
+
+        // get User info
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", request.getAlias());
+        User user;
+        try {
+            Item outcome = userTable.getItem(spec);
+            System.out.println("GetItem succeeded: " + outcome);
+            user = new User(outcome.getString("firstName"), outcome.getString("lastName"), outcome.getString("user_handle"), url.toString());
+        } catch (Exception e) {
+            System.err.println("Unable to read item");
+            throw e;
+        }
+
         return new UserResponse(user);
     }
 

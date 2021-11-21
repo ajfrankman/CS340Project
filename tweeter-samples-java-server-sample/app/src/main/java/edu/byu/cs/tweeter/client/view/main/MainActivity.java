@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
                     Toast.makeText(MainActivity.this, "Removing " + selectedUser.getName() + "...", Toast.LENGTH_LONG).show();
                 } else {
                     mainActivityPresenter.follow(Cache.getInstance().getCurrUserAuthToken(), selectedUser);
+                    Toast.makeText(MainActivity.this, "Adding " + selectedUser.getName() + "...", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -167,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
             followButton.setBackgroundColor(getResources().getColor(R.color.white));
             followButton.setTextColor(getResources().getColor(R.color.lightGray));
         }
+        followButton.setEnabled(true);
     }
 
     @Override
