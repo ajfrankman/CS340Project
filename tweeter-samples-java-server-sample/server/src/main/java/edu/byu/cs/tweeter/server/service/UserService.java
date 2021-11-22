@@ -1,5 +1,9 @@
 package edu.byu.cs.tweeter.server.service;
 
+import java.net.URL;
+
+import edu.byu.cs.tweeter.model.domain.AuthToken;
+import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
 import edu.byu.cs.tweeter.model.net.request.LogoutRequest;
 import edu.byu.cs.tweeter.model.net.request.PostStatusRequest;
@@ -23,11 +27,32 @@ public class UserService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        return currentFactory.getUserDAO().login(request);
+        if (request.getPassword() == null || request.getUsername() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
+        // getUser()
+        User user = currentFactory.getUserDAO().getUser(request.getUsername());
+        // getAuthToken()
+        AuthToken authToken = currentFactory.getAuthDAO().generateAuthToken(request.getUsername());
+        // Create Response()
+        return new LoginResponse(user, authToken);
     }
 
     public RegisterResponse register(RegisterRequest request) {
-        return currentFactory.getUserDAO().register(request);
+        if (request.getAlias() == null || request.getPassword() == null || request.getFirstName() == null || request.getLastName() == null || request.getImageBytesBase64() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
+
+        // add User()
+        currentFactory.getUserDAO().addUser(request);
+        // add image()
+        URL url = currentFactory.getUserDAO().addUserImage(request);
+        // getUser() **maybe just create here without grabbing?**
+        User registeredUser = new User(request.getFirstName(), request.getLastName(), request.getAlias(), url.toString());
+        // generateAuthToken()
+        AuthToken authToken = currentFactory.getAuthDAO().generateAuthToken(request.getAlias());
+        // Create Response
+        return new RegisterResponse(registeredUser, authToken);
     }
 
     public LogoutResponse logout(LogoutRequest request) {
@@ -35,7 +60,10 @@ public class UserService {
     }
 
     public UserResponse getUser(UserRequest request) {
-        return currentFactory.getUserDAO().getUser(request);
+        // getUser()
+        User user = currentFactory.getUserDAO().getUser(request.getAlias());
+        // Create Response()
+        return new UserResponse(user);
     }
 
     public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {

@@ -40,30 +40,6 @@ public class UserDAO implements UserDAOInterface {
 
     // TODO make sure all authorized tasks check for an authtoken
 
-    public LoginResponse login(LoginRequest request) {
-        if (request.getPassword() == null || request.getUsername() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-
-        return new LoginResponse(getUser(request.getUsername()), generateAuthToken(request.getUsername()));
-    }
-
-    public RegisterResponse register(RegisterRequest request) {
-        if (request.getAlias() == null || request.getPassword() == null || request.getFirstName() == null || request.getLastName() == null || request.getImageBytesBase64() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-
-        addUser(request);
-
-        // TODO if this fails remove user?
-        URL url = addUserImage(request);
-
-        // Don't bother grabbing the user from table. This is cheaper/faster.
-        User registeredUser = new User(request.getFirstName(), request.getLastName(), request.getAlias(), url.toString());
-
-        return new RegisterResponse(registeredUser, generateAuthToken(request.getAlias()));
-    }
-
     public LogoutResponse logout(LogoutRequest request) {
         if (request.getAuthToken() == null) {
             throw new RuntimeException("Invalid request object");
@@ -94,6 +70,7 @@ public class UserDAO implements UserDAOInterface {
             throw new RuntimeException("Invalid request object");
         }
 
+
         return new UserResponse(getUser(request.getAlias()));
     }
 
@@ -103,35 +80,31 @@ public class UserDAO implements UserDAOInterface {
             throw new RuntimeException("Invalid request object");
         }
 
-        // add status to the feed table. That means create a copy of the status for each person that follows him.
-        // First we will need to get a list of people who follow him.
-//        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
-//        DynamoDB dynamoDB = new DynamoDB(client);
-//        Table table = dynamoDB.getTable("feed");
-//        try {
-//            PutItemOutcome outcome = table.putItem(new Item()
-//                    .withPrimaryKey("user_handle", request.getAlias())
-//                    .with("firstName", request.getFirstName())
-//                    .with("lastName", request.getLastName())
-//                    .with("password", request.getPassword()));
-//        } catch (Exception e) {
-//            System.out.println(e.getMessage());
-//            throw e;
-//        }
-
-// post, date, mentions, urls
-
-        // add a status to the story table. That means create a status for this user and add it.
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
-        Table table = dynamoDB.getTable("story");
+        Table feedTable = dynamoDB.getTable("feed");
+        Table storyTable = dynamoDB.getTable("story");
+
+        Item status = new Item().withPrimaryKey("user_handle", postStatusRequest.getStatus().getUser().getAlias())
+                .with("post", postStatusRequest.getStatus().getPost())
+                .with("date", postStatusRequest.getStatus().getDate())
+                .with("mentions", postStatusRequest.getStatus().getMentions().toString())
+                .with("urls", postStatusRequest.getStatus().getUrls().toString());
+
+        // add status to the feed table. That means create a copy of the status for each person that follows him.
+        // First we will need to get a list of people who follow him.
+
         try {
-            PutItemOutcome outcome = table.putItem(new Item()
-                    .withPrimaryKey("user_handle", postStatusRequest.getStatus().getUser().getAlias())
-                    .with("post", postStatusRequest.getStatus().getPost())
-                    .with("date", postStatusRequest.getStatus().getDate())
-                    .with("mentions", postStatusRequest.getStatus().getMentions().toString())
-                    .with("urls", postStatusRequest.getStatus().getUrls().toString()));
+            PutItemOutcome outcome = feedTable.putItem(status);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw e;
+        }
+
+
+        // add a status to the story table. That means create a status for this user and add it.
+        try {
+            PutItemOutcome outcome = storyTable.putItem(status);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw e;
@@ -145,7 +118,7 @@ public class UserDAO implements UserDAOInterface {
 
 
 
-    private User getUser(String alias) {
+    public User getUser(String alias) {
         // get the user table
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
@@ -193,7 +166,7 @@ public class UserDAO implements UserDAOInterface {
         return authToken;
     }
 
-    private void addUser(RegisterRequest request) {
+    public void addUser(RegisterRequest request) {
         // Add user to table
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
@@ -212,7 +185,7 @@ public class UserDAO implements UserDAOInterface {
 
     }
 
-    private URL addUserImage(RegisterRequest request) {
+    public URL addUserImage(RegisterRequest request) {
         // Add Image to s3 Bucket
         URL url = null;
         try {

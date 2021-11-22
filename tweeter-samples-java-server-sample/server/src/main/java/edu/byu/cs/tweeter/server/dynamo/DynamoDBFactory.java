@@ -22,6 +22,11 @@ public class DynamoDBFactory implements DAOFactory {
     }
 
     @Override
+    public AuthDAO getAuthDAO() {
+        return new AuthDAO();
+    }
+
+    @Override
     public StatusPageDAO getStatusPageDAO() {
         return new StatusPageDAO();
     }

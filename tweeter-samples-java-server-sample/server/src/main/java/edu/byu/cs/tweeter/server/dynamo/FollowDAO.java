@@ -1,15 +1,21 @@
 package edu.byu.cs.tweeter.server.dynamo;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.DeleteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,34 +63,41 @@ public class FollowDAO implements FollowDAOInterface {
         DynamoDB dynamoDB = new DynamoDB(client);
         Table table = dynamoDB.getTable("follows");
 
-//        final Map<String, Object> infoMap = new HashMap<String, Object>();
-//        infoMap.put("plot", "Nothing happens at all.");
-//        infoMap.put("rating", 0);
+        try {
+            System.out.println("Adding a new item...");
+            PutItemOutcome outcome = table.putItem(new Item()
+                            .withPrimaryKey("follower_handle",
+                                    "@" + request.getAuthToken().getUserAlias(),
+                                    "followee_handle",
+                                    request.getFollowee()));
+            System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
 
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                if (i != j) {
-                    try {
-                        System.out.println("Adding a new item...");
-                        PutItemOutcome outcome = table
-                                .putItem(new Item()
-                                        .withPrimaryKey("follower_handle", "@" + request.getAuthToken().getUserAlias(), "followee_handle", request.getFollowee()));
-
-                        System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
-
-                    } catch (Exception e) {
-                        System.err.println("Unable to add item.");
-                        System.err.println(e.getMessage());
-                    }
-                }
-            }
+        } catch (Exception e) {
+            System.err.println("Unable to add item.");
+            System.err.println(e.getMessage());
+            throw e;
         }
-
 
         return new FollowResponse();
     }
 
     public UnfollowResponse unfollow(UnfollowRequest request) {
+        // Still need to test.
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-east-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("follows");
+
+        try {
+            System.out.println("Removing an item...");
+            DeleteItemOutcome outcome = table.deleteItem("follower_handle",
+                            "@" + request.getAuthToken().getUserAlias(), "followee_handle", "@" + request.getFollowee());
+            System.out.println("Delete succeeded:\n" + outcome.getDeleteItemResult());
+        } catch (Exception e) {
+            System.err.println("Unable to delete item.");
+            System.err.println(e.getMessage());
+            throw e;
+        }
+
         return new UnfollowResponse();
     }
 
@@ -100,27 +113,79 @@ public class FollowDAO implements FollowDAOInterface {
      */
     public FollowersResponse getFollowers(FollowersRequest request) {
         // TODO: Generates dummy data. Replace with a real implementation.
-        assert request.getLimit() > 0;
-        assert request.getFolloweeAlias() != null;
+        List<String> aliasList = new ArrayList<>();
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("follows");
 
-        List<User> allFollowers = getDummyFollowers();
-        List<User> responseFollowers = new ArrayList<>(request.getLimit());
+        HashMap<String, Object> valueMap = new HashMap<String, Object>();
+        valueMap.put(":f", request.getAuthToken().getUserAlias());
 
-        boolean hasMorePages = false;
+        boolean notEmpty = true;
 
-        if(request.getLimit() > 0) {
-            if (allFollowers != null) {
-                int followersIndex = getFollowersStartingIndex(request.getLastFollowerAlias(), allFollowers);
+        String lastFollowerHandle = request.getAuthToken().getUserAlias();
+        String lastFolloweeHandle = request.getFolloweeAlias();
+        int limit = 0;
+        while (notEmpty && limit < request.getLimit()) {
+            limit++;
+            QuerySpec querySpec = new QuerySpec().withKeyConditionExpression("follower_handle = :f")
+                    .withValueMap(valueMap).withMaxResultSize(1);
 
-                for(int limitCounter = 0; followersIndex < allFollowers.size() && limitCounter < request.getLimit(); followersIndex++, limitCounter++) {
-                    responseFollowers.add(allFollowers.get(followersIndex));
+            ItemCollection<QueryOutcome> items = null;
+            Iterator<Item> iterator = null;
+            Item item = null;
+
+            if (lastFolloweeHandle != null && lastFollowerHandle != null) {
+                querySpec.withExclusiveStartKey("follower_handle", lastFollowerHandle, "followee_handle", lastFolloweeHandle);
+            }
+            items = table.query(querySpec);
+            try {
+                iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    item = iterator.next();
+                    aliasList.add(item.getString("followee_handle"));
                 }
-
-                hasMorePages = followersIndex < allFollowers.size();
+                if (items.getLastLowLevelResult().getQueryResult().getLastEvaluatedKey() == null) {
+                    notEmpty = false;
+                } else {
+                    lastFollowerHandle = items.getLastLowLevelResult().getQueryResult().getLastEvaluatedKey().get("follower_handle").getS();
+                    lastFolloweeHandle = items.getLastLowLevelResult().getQueryResult().getLastEvaluatedKey().get("followee_handle").getS();
+                    System.out.println(lastFollowerHandle + lastFolloweeHandle);
+                }
+            } catch (Exception e) {
+                System.err.println("CS340 data");
+                System.err.println(e.getMessage());
             }
         }
 
-        return new FollowersResponse(responseFollowers, hasMorePages);
+        List<User> userList = new ArrayList<>();
+        // Loop through aliases and grab Users.
+        for (int i = 0; i < aliasList.size(); i++) {
+            userList.add(getUser(aliasList.get(i)));
+        }
+        return new FollowersResponse(userList, false);
+
+//        assert request.getLimit() > 0;
+//        assert request.getFolloweeAlias() != null;
+//
+//        List<User> allFollowers = getDummyFollowers();
+//        List<User> responseFollowers = new ArrayList<>(request.getLimit());
+//
+//        boolean hasMorePages = false;
+//
+//        if(request.getLimit() > 0) {
+//            if (allFollowers != null) {
+//                int followersIndex = getFollowersStartingIndex(request.getLastFollowerAlias(), allFollowers);
+//
+//                for(int limitCounter = 0; followersIndex < allFollowers.size() && limitCounter < request.getLimit(); followersIndex++, limitCounter++) {
+//                    responseFollowers.add(allFollowers.get(followersIndex));
+//                }
+//
+//                hasMorePages = followersIndex < allFollowers.size();
+//            }
+//        }
+//
+//        return new FollowersResponse(responseFollowers, hasMorePages);
     }
 
     /**
@@ -213,6 +278,51 @@ public class FollowDAO implements FollowDAOInterface {
         return new FollowingResponse(responseFollowees, hasMorePages);
     }
 
+
+
+
+
+
+
+
+
+    private User getUser(String alias) {
+        // get the user table
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table userTable = dynamoDB.getTable("users");
+
+        // get photo link from s3
+        AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
+        String fileName = String.format("%s_profile_image", alias);
+        URL url = s3.getUrl("ppictures", fileName);
+
+        System.out.println("filename: " + fileName);
+
+        // get User info
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", alias);
+        User user;
+        try {
+            Item outcome = userTable.getItem(spec);
+            System.out.println("GetItem succeeded: " + outcome);
+            user = new User(outcome.getString("firstName"), outcome.getString("lastName"), outcome.getString("user_handle"), url.toString());
+        } catch (Exception e) {
+            System.err.println("Unable to read item");
+            throw e;
+        }
+
+        return user;
+    }
+
+
+
+
+
+
+
+
+
+
     /**
      * Determines the index for the first followee in the specified 'allFollowees' list that should
      * be returned in the current request. This will be the index of the next followee after the
@@ -272,6 +382,7 @@ public class FollowDAO implements FollowDAOInterface {
 
         return followersIndex;
     }
+
 
     /**
      * Returns the list of dummy followee data. This is written as a separate method to allow
