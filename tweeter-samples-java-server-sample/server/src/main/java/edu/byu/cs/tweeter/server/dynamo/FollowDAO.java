@@ -1,7 +1,20 @@
 package edu.byu.cs.tweeter.server.dynamo;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowRequest;
@@ -39,6 +52,35 @@ public class FollowDAO implements FollowDAOInterface {
     }
 
     public FollowResponse follow(FollowRequest request) {
+        // Still need to test.
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-east-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("follows");
+
+//        final Map<String, Object> infoMap = new HashMap<String, Object>();
+//        infoMap.put("plot", "Nothing happens at all.");
+//        infoMap.put("rating", 0);
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (i != j) {
+                    try {
+                        System.out.println("Adding a new item...");
+                        PutItemOutcome outcome = table
+                                .putItem(new Item()
+                                        .withPrimaryKey("follower_handle", "@" + request.getAuthToken().getUserAlias(), "followee_handle", request.getFollowee()));
+
+                        System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
+
+                    } catch (Exception e) {
+                        System.err.println("Unable to add item.");
+                        System.err.println(e.getMessage());
+                    }
+                }
+            }
+        }
+
+
         return new FollowResponse();
     }
 
@@ -92,7 +134,62 @@ public class FollowDAO implements FollowDAOInterface {
      * @return the followees.
      */
     public FollowingResponse getFollowing(FollowingRequest request) {
-        // TODO: Generates dummy data. Replace with a real implementation.
+
+//        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+//        DynamoDB dynamoDB = new DynamoDB(client);
+//        Table table = dynamoDB.getTable("follows");
+//
+//        HashMap<String, Object> valueMap = new HashMap<String, Object>();
+//        valueMap.put(":f", request.getAuthToken().getUserAlias());
+//
+//        boolean notEmpty = true;
+//
+//        String lastFollowerHandle = null;
+//        String lastFolloweeHandle = null;
+//        while (notEmpty) {
+//            QuerySpec querySpec = new QuerySpec().withKeyConditionExpression("follower_handle = :f")
+//                    .withValueMap(valueMap).withMaxResultSize(1);
+//
+//            ItemCollection<QueryOutcome> items = null;
+//            Iterator<Item> iterator = null;
+//            Item item = null;
+//
+//            if (lastFolloweeHandle != null && lastFollowerHandle != null) {
+//                querySpec.withExclusiveStartKey("follower_handle", lastFollowerHandle, "followee_handle", lastFolloweeHandle);
+//            }
+//            items = table.query(querySpec);
+//            try {
+//                System.out.println("CS340 data");
+//
+//
+//                iterator = items.iterator();
+//                while (iterator.hasNext()) {
+//                    item = iterator.next();
+//                    System.out.println(item.getString("follower_handle") + ": " + item.getString("followee_handle"));
+//                }
+//                if (items.getLastLowLevelResult().getQueryResult().getLastEvaluatedKey() == null) {
+//                    notEmpty = false;
+//                } else {
+//                    lastFollowerHandle = items.getLastLowLevelResult().getQueryResult().getLastEvaluatedKey().get("follower_handle").getS();
+//                    lastFolloweeHandle = items.getLastLowLevelResult().getQueryResult().getLastEvaluatedKey().get("followee_handle").getS();
+//                    System.out.println(lastFollowerHandle + lastFolloweeHandle);
+//                }
+//            } catch (Exception e) {
+//                System.err.println("CS340 data");
+//                System.err.println(e.getMessage());
+//            }
+//        }
+
+
+
+
+
+
+
+
+
+
+                // TODO: Generates dummy data. Replace with a real implementation.
         assert request.getLimit() > 0;
         assert request.getFollowerAlias() != null;
 

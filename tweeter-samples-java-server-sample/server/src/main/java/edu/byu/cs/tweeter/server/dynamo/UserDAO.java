@@ -2,6 +2,25 @@ package edu.byu.cs.tweeter.server.dynamo;
 
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+
+import java.io.ByteArrayInputStream;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.UUID;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -15,47 +34,118 @@ import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.model.net.response.PostStatusResponse;
 import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.model.net.response.UserResponse;
-import edu.byu.cs.tweeter.model.util.FakeData;
 import edu.byu.cs.tweeter.server.factoryinterfaces.UserDAOInterface;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
-import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
-import com.amazonaws.services.dynamodbv2.model.Get;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-
-import java.io.ByteArrayInputStream;
-import java.net.URL;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.UUID;
 
 public class UserDAO implements UserDAOInterface {
 
-    // TODO remove when no longer used
-    private static final String MALE_IMAGE_URL = "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png";
-
-
+    // TODO make sure all authorized tasks check for an authtoken
 
     public LoginResponse login(LoginRequest request) {
         if (request.getPassword() == null || request.getUsername() == null) {
             throw new RuntimeException("Invalid request object");
         }
 
+        return new LoginResponse(getUser(request.getUsername()), generateAuthToken(request.getUsername()));
+    }
+
+    public RegisterResponse register(RegisterRequest request) {
+        if (request.getAlias() == null || request.getPassword() == null || request.getFirstName() == null || request.getLastName() == null || request.getImageBytesBase64() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
+
+        addUser(request);
+
+        // TODO if this fails remove user?
+        URL url = addUserImage(request);
+
+        // Don't bother grabbing the user from table. This is cheaper/faster.
+        User registeredUser = new User(request.getFirstName(), request.getLastName(), request.getAlias(), url.toString());
+
+        return new RegisterResponse(registeredUser, generateAuthToken(request.getAlias()));
+    }
+
+    public LogoutResponse logout(LogoutRequest request) {
+        if (request.getAuthToken() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
+
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+
+        // Don't need to generate auth to log out.
+//        LocalDateTime localDateTime = LocalDateTime.now();
+//        AuthToken authToken = new AuthToken(UUID.randomUUID().toString(), localDateTime.toString());
+
+        // Remove authtoken from table
+        Table authTable = dynamoDB.getTable("auth_table");
+        DeleteItemSpec deleteItemSpec = new DeleteItemSpec().withPrimaryKey(new PrimaryKey("authtoken", request.getAuthToken()));
+        try {
+            authTable.deleteItem(deleteItemSpec);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw e;
+        }
+        // TODO: Still isn't deleting but IDK why?
+        return new LogoutResponse();
+    }
+
+    public UserResponse getUser(UserRequest request) {
+        if (request.getAlias() == null || request.getAuthToken() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
+
+        return new UserResponse(getUser(request.getAlias()));
+    }
+
+    public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {
+        // TODO: Handle the status and stuff
+        if (postStatusRequest.getStatus() == null || postStatusRequest.getAuthToken() == null) {
+            throw new RuntimeException("Invalid request object");
+        }
+
+        // add status to the feed table. That means create a copy of the status for each person that follows him.
+        // First we will need to get a list of people who follow him.
+//        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+//        DynamoDB dynamoDB = new DynamoDB(client);
+//        Table table = dynamoDB.getTable("feed");
+//        try {
+//            PutItemOutcome outcome = table.putItem(new Item()
+//                    .withPrimaryKey("user_handle", request.getAlias())
+//                    .with("firstName", request.getFirstName())
+//                    .with("lastName", request.getLastName())
+//                    .with("password", request.getPassword()));
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//            throw e;
+//        }
+
+// post, date, mentions, urls
+
+        // add a status to the story table. That means create a status for this user and add it.
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("story");
+        try {
+            PutItemOutcome outcome = table.putItem(new Item()
+                    .withPrimaryKey("user_handle", postStatusRequest.getStatus().getUser().getAlias())
+                    .with("post", postStatusRequest.getStatus().getPost())
+                    .with("date", postStatusRequest.getStatus().getDate())
+                    .with("mentions", postStatusRequest.getStatus().getMentions().toString())
+                    .with("urls", postStatusRequest.getStatus().getUrls().toString()));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw e;
+        }
+
+        return new PostStatusResponse();
+    }
+
+
+
+
+
+
+    private User getUser(String alias) {
         // get the user table
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
@@ -63,13 +153,13 @@ public class UserDAO implements UserDAOInterface {
 
         // get photo link from s3
         AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
-        String fileName = String.format("%s_profile_image", request.getUsername());
+        String fileName = String.format("%s_profile_image", alias);
         URL url = s3.getUrl("ppictures", fileName);
 
         System.out.println("filename: " + fileName);
 
         // get User info
-        GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", request.getUsername());
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", alias);
         User user;
         try {
             Item outcome = userTable.getItem(spec);
@@ -80,9 +170,17 @@ public class UserDAO implements UserDAOInterface {
             throw e;
         }
 
+        return user;
+    }
+
+    private AuthToken generateAuthToken(String userAlias) {
+
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+
         // Generate Authtoken
         LocalDateTime localDateTime = LocalDateTime.now();
-        AuthToken authToken = new AuthToken(UUID.randomUUID().toString(), localDateTime.toString());
+        AuthToken authToken = new AuthToken(UUID.randomUUID().toString(), localDateTime.toString(), userAlias);
         // Put authtoken in table
         Table authTable = dynamoDB.getTable("auth_table");
         try {
@@ -92,16 +190,10 @@ public class UserDAO implements UserDAOInterface {
             throw e;
         }
 
-//        AuthToken authToken = getDummyAuthToken();
-
-        return new LoginResponse(user, authToken);
+        return authToken;
     }
 
-    public RegisterResponse register(RegisterRequest request) {
-        if (request.getAlias() == null || request.getPassword() == null || request.getFirstName() == null || request.getLastName() == null || request.getImageBytesBase64() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-
+    private void addUser(RegisterRequest request) {
         // Add user to table
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
@@ -117,6 +209,10 @@ public class UserDAO implements UserDAOInterface {
             throw e;
         }
 
+
+    }
+
+    private URL addUserImage(RegisterRequest request) {
         // Add Image to s3 Bucket
         URL url = null;
         try {
@@ -143,108 +239,6 @@ public class UserDAO implements UserDAOInterface {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
-        // Don't bother grabbing the user from table. This is faster.
-        User registeredUser = new User(request.getFirstName(), request.getLastName(), request.getAlias(), url.toString());
-
-        // Generate Authtoken
-        LocalDateTime localDateTime = LocalDateTime.now();
-        AuthToken authToken = new AuthToken(UUID.randomUUID().toString(), localDateTime.toString());
-        // Put authtoken in table
-        Table authTable = dynamoDB.getTable("auth_table");
-        try {
-            PutItemOutcome outcome = authTable.putItem(new Item().withPrimaryKey("authtoken", authToken.getToken()).with("time", authToken.getDatetime()));
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw e;
-        }
-
-        return new RegisterResponse(registeredUser, authToken);
-    }
-
-    public LogoutResponse logout(LogoutRequest request) {
-        if (request.getAuthToken() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-
-        // TODO: remove authtoken
-        return new LogoutResponse();
-    }
-
-    public UserResponse getUser(UserRequest request) {
-        if (request.getAlias() == null || request.getAuthToken() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-
-        // get the user table
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
-        DynamoDB dynamoDB = new DynamoDB(client);
-        Table userTable = dynamoDB.getTable("users");
-
-        // get photo link from s3
-        AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
-        String fileName = String.format("%s_profile_image", request.getAlias());
-        URL url = s3.getUrl("ppictures", fileName);
-
-        System.out.println("filename: " + fileName);
-
-        // get User info
-        GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", request.getAlias());
-        User user;
-        try {
-            Item outcome = userTable.getItem(spec);
-            System.out.println("GetItem succeeded: " + outcome);
-            user = new User(outcome.getString("firstName"), outcome.getString("lastName"), outcome.getString("user_handle"), url.toString());
-        } catch (Exception e) {
-            System.err.println("Unable to read item");
-            throw e;
-        }
-
-        return new UserResponse(user);
-    }
-
-    public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {
-        // TODO: Handle the status and stuff
-        if (postStatusRequest.getStatus() == null || postStatusRequest.getAuthToken() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-        return new PostStatusResponse();
-    }
-
-
-
-
-    /**
-     * Returns the dummy user to be returned by the login/register operation.
-     * This is written as a separate method to allow mocking of the dummy user.
-     *
-     * @return a dummy user.
-     */
-    User getDummyUser() {
-        return getFakeData().getFirstUser();
-    }
-
-//    Status getDummyStatus() {
-//        return getFakeData().getPageOfStatus(null, 1).getFirst().get(0);
-//    }
-
-    /**
-     * Returns the dummy auth token to be returned by the login/register operation.
-     * This is written as a separate method to allow mocking of the dummy auth token.
-     *
-     * @return a dummy auth token.
-     */
-    AuthToken getDummyAuthToken() {
-        return getFakeData().getAuthToken();
-    }
-
-    /**
-     * Returns the {@link FakeData} object used to generate dummy users and auth tokens.
-     * This is written as a separate method to allow mocking of the {@link FakeData}.
-     *
-     * @return a {@link FakeData} instance.
-     */
-    FakeData getFakeData() {
-        return new FakeData();
+        return url;
     }
 }

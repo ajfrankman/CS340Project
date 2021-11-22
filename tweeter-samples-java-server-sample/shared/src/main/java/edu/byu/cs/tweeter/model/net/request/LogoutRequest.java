@@ -6,8 +6,7 @@ public class LogoutRequest {
     AuthToken authToken;
 
 
-    public LogoutRequest() {
-    }
+    public LogoutRequest() {}
 
     public LogoutRequest(AuthToken authToken) {
         this.authToken = authToken;
