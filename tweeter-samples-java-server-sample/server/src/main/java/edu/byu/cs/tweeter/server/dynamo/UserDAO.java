@@ -10,6 +10,8 @@ import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -48,10 +50,6 @@ public class UserDAO implements UserDAOInterface {
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
 
-        // Don't need to generate auth to log out.
-//        LocalDateTime localDateTime = LocalDateTime.now();
-//        AuthToken authToken = new AuthToken(UUID.randomUUID().toString(), localDateTime.toString());
-
         // Remove authtoken from table
         Table authTable = dynamoDB.getTable("auth_table");
         DeleteItemSpec deleteItemSpec = new DeleteItemSpec().withPrimaryKey(new PrimaryKey("authtoken", request.getAuthToken()));
@@ -64,59 +62,6 @@ public class UserDAO implements UserDAOInterface {
         // TODO: Still isn't deleting but IDK why?
         return new LogoutResponse();
     }
-
-    public UserResponse getUser(UserRequest request) {
-        if (request.getAlias() == null || request.getAuthToken() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-
-
-        return new UserResponse(getUser(request.getAlias()));
-    }
-
-    public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {
-        // TODO: Handle the status and stuff
-        if (postStatusRequest.getStatus() == null || postStatusRequest.getAuthToken() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
-        DynamoDB dynamoDB = new DynamoDB(client);
-        Table feedTable = dynamoDB.getTable("feed");
-        Table storyTable = dynamoDB.getTable("story");
-
-        Item status = new Item().withPrimaryKey("user_handle", postStatusRequest.getStatus().getUser().getAlias())
-                .with("post", postStatusRequest.getStatus().getPost())
-                .with("date", postStatusRequest.getStatus().getDate())
-                .with("mentions", postStatusRequest.getStatus().getMentions().toString())
-                .with("urls", postStatusRequest.getStatus().getUrls().toString());
-
-        // add status to the feed table. That means create a copy of the status for each person that follows him.
-        // First we will need to get a list of people who follow him.
-
-        try {
-            PutItemOutcome outcome = feedTable.putItem(status);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw e;
-        }
-
-
-        // add a status to the story table. That means create a status for this user and add it.
-        try {
-            PutItemOutcome outcome = storyTable.putItem(status);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw e;
-        }
-
-        return new PostStatusResponse();
-    }
-
-
-
-
-
 
     public User getUser(String alias) {
         // get the user table
@@ -146,26 +91,6 @@ public class UserDAO implements UserDAOInterface {
         return user;
     }
 
-    private AuthToken generateAuthToken(String userAlias) {
-
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
-        DynamoDB dynamoDB = new DynamoDB(client);
-
-        // Generate Authtoken
-        LocalDateTime localDateTime = LocalDateTime.now();
-        AuthToken authToken = new AuthToken(UUID.randomUUID().toString(), localDateTime.toString(), userAlias);
-        // Put authtoken in table
-        Table authTable = dynamoDB.getTable("auth_table");
-        try {
-            PutItemOutcome outcome = authTable.putItem(new Item().withPrimaryKey("authtoken", authToken.getToken()).with("time", authToken.getDatetime()));
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw e;
-        }
-
-        return authToken;
-    }
-
     public void addUser(RegisterRequest request) {
         // Add user to table
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
@@ -176,7 +101,9 @@ public class UserDAO implements UserDAOInterface {
                     .withPrimaryKey("user_handle", request.getAlias())
                     .with("firstName", request.getFirstName())
                     .with("lastName", request.getLastName())
-                    .with("password", request.getPassword()));
+                    .with("password", request.getPassword())
+                    .with("followingCount", 0)
+                    .with("followersCount", 0));
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw e;
@@ -213,5 +140,69 @@ public class UserDAO implements UserDAOInterface {
             System.out.println(e.getMessage());
         }
         return url;
+    }
+
+    public void updateFollowingCount(String userAlias, int update) {
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("users");
+
+//        User user = getUser(userAlias);
+
+        UpdateItemSpec spec = new UpdateItemSpec()
+                .withPrimaryKey("user_handle", userAlias)
+                .withUpdateExpression("add followingCount :r")
+                .withValueMap(new ValueMap().withNumber(":r", update));
+
+        table.updateItem(spec);
+    }
+
+    public void updateFollowersCount(String userAlias, int update) {
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("users");
+
+//        User user = getUser(userAlias);
+
+        UpdateItemSpec spec = new UpdateItemSpec()
+                .withPrimaryKey("user_handle", userAlias)
+                .withUpdateExpression("add followersCount :r")
+                .withValueMap(new ValueMap().withNumber(":r", update));
+
+        table.updateItem(spec);
+    }
+
+    public int getUserFollowingCount(String userAlias) {
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table userTable = dynamoDB.getTable("users");
+
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", userAlias);
+
+        int followingCount;
+        try {
+            Item outcome = userTable.getItem(spec);
+            followingCount = outcome.getInt("followingCount");
+        } catch (Exception e) {
+            throw e;
+        }
+        return followingCount;
+    }
+
+    public int getUserFollowersCount(String userAlias) {
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table userTable = dynamoDB.getTable("users");
+
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", userAlias);
+
+        int followersCount;
+        try {
+            Item outcome = userTable.getItem(spec);
+            followersCount = outcome.getInt("followersCount");
+        } catch (Exception e) {
+            throw e;
+        }
+        return followersCount;
     }
 }

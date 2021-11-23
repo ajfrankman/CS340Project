@@ -1,5 +1,9 @@
 package edu.byu.cs.tweeter.server.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowersRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
@@ -14,6 +18,7 @@ import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
 import edu.byu.cs.tweeter.model.net.response.IsFollowerResponse;
 import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
+import edu.byu.cs.tweeter.model.util.Pair;
 import edu.byu.cs.tweeter.server.dynamo.DynamoDBFactory;
 import edu.byu.cs.tweeter.server.dynamo.FollowDAO;
 import edu.byu.cs.tweeter.server.factoryinterfaces.DAOFactory;
@@ -29,81 +34,119 @@ public class FollowService {
         this.currentFactory = currentFactory;
     }
 
-    /**
-     * Returns the users that the user specified in the request is following. Uses information in
-     * the request object to limit the number of followees returned and to return the next set of
-     * followees after any that were returned in a previous request. Uses the {@link FollowDAO} to
-     * get the followees.
-     *
-     * @param request contains the data required to fulfill the request.
-     * @return the followees.
-     */
-    public FollowingResponse getFollowees(FollowingRequest request) {
+    public FollowingResponse getFollowing(FollowingRequest request) {
         if (request.getLimit() < 1 || request.getFollowerAlias() == null || request.getAuthToken() == null) {
-            throw new RuntimeException("Invalid request object");
+            throw new RuntimeException("Invalid FollowingRequest object");
         }
-        return currentFactory.getFollowDAO().getFollowing(request);
+
+        // Get following alias list and has more page
+        Pair<List<String>, Boolean> resultPair = currentFactory
+                .getFollowDAO()
+                .getFollowingAlias(
+                        request.getFollowerAlias(),
+                        request.getLastFolloweeAlias(),
+                        request.getLimit()
+                );
+
+        List<String> aliasList = resultPair.getFirst();
+        Boolean hasMorePages = resultPair.getSecond();
+
+        // Get users from aliass
+        List<User> userList = new ArrayList<>();
+        for (int i = 0; i < aliasList.size(); i++) {
+            userList.add(currentFactory.getUserDAO().getUser(aliasList.get(i)));
+        }
+
+        return new FollowingResponse(userList, hasMorePages);
     }
 
-    /**
-     * Returns the users that the user specified in the request is following. Uses information in
-     * the request object to limit the number of followees returned and to return the next set of
-     * followees after any that were returned in a previous request. Uses the {@link FollowDAO} to
-     * get the followees.
-     *
-     * @param request contains the data required to fulfill the request.
-     * @return the followees.
-     */
     public FollowersResponse getFollowers(FollowersRequest request) {
         if (request.getLimit() < 1 || request.getFolloweeAlias() == null || request.getAuthToken() == null) {
-            throw new RuntimeException("Invalid request object");
+            throw new RuntimeException("Invalid FollowersRequest object");
         }
-        return currentFactory.getFollowDAO().getFollowers(request);
+        // Get follower alias list and has more page
+        Pair<List<String>, Boolean> resultPair = currentFactory
+                .getFollowDAO()
+                .getFollowersAlias(
+                        request.getFolloweeAlias(),
+                        request.getLastFollowerAlias(),
+                        request.getLimit()
+                );
+
+        List<String> aliasList = resultPair.getFirst();
+        Boolean hasMorePages = resultPair.getSecond();
+
+        // Get users from aliass
+        List<User> userList = new ArrayList<>();
+        for (int i = 0; i < aliasList.size(); i++) {
+            userList.add(currentFactory.getUserDAO().getUser(aliasList.get(i)));
+        }
+
+        // Build Response
+        return new FollowersResponse(userList, hasMorePages);
     }
 
     public IsFollowerResponse isFollower(IsFollowerRequest request) {
         if (request.getAuthToken() == null) {
             throw new RuntimeException("Invalid request object");
         }
-        return currentFactory.getFollowDAO().isFollower(request);
+
+        // Check if user is follower
+        Boolean isFollower = currentFactory.getFollowDAO().isFollower(request.getFollower().getAlias(), request.getFollowee().getAlias());
+
+        return new IsFollowerResponse(isFollower);
     }
 
     public GetFollowersCountResponse getFollowersCount(GetFollowersCountRequest request) {
         if (request.getAuthToken() == null || request.getTargetUser() == null) {
             throw new RuntimeException("Invalid request object");
         }
-        return currentFactory.getFollowDAO().getFollowersCount(request);
+
+
+        // Return the followers count of a given user.
+        int followersCount = currentFactory.getUserDAO().getUserFollowersCount(request.getTargetUser().getAlias());
+
+        return new GetFollowersCountResponse(followersCount);
     }
 
     public GetFollowingCountResponse getFollowingCount(GetFollowingCountRequest request) {
         if (request.getAuthToken() == null || request.getTargetUser() == null) {
             throw new RuntimeException("Invalid request object");
         }
-        return currentFactory.getFollowDAO().getFollowingCount(request);
+
+        // Return the following count of a given user.
+        int followingCount = currentFactory.getUserDAO().getUserFollowingCount(request.getTargetUser().getAlias());
+
+        return new GetFollowingCountResponse(followingCount);
     }
 
     public FollowResponse follow(FollowRequest request) {
         if (request.getAuthToken() == null || request.getFollowee() == null) {
-            throw new RuntimeException("Invalid request object");
+            throw new RuntimeException("Invalid FollowRequest object");
         }
-        return currentFactory.getFollowDAO().follow(request);
+
+        // add follow relationship to follow table
+        currentFactory.getFollowDAO().follow(request.getAuthToken().getUserAlias(), request.getFollowee().getAlias());
+        // increment currentUser followingCount
+        currentFactory.getUserDAO().updateFollowingCount(request.getAuthToken().getUserAlias(), 1);
+        // increment other user's followersCount
+        currentFactory.getUserDAO().updateFollowersCount(request.getFollowee().getAlias(), 1);
+
+        return new FollowResponse();
     }
 
     public UnfollowResponse unfollow(UnfollowRequest request) {
         if (request.getAuthToken() == null || request.getFollowee() == null) {
-            throw new RuntimeException("Invalid request object");
+            throw new RuntimeException("Invalid UnfollowRequest object");
         }
-        return currentFactory.getFollowDAO().unfollow(request);
-    }
 
-    /**
-     * Returns an instance of {@link FollowDAO}. Allows mocking of the FollowDAO class
-     * for testing purposes. All usages of FollowDAO should get their FollowDAO
-     * instance from this method to allow for mocking of the instance.
-     *
-     * @return the instance.
-     */
-    FollowDAO getFollowDAO() {
-        return new FollowDAO();
+        // add follow relationship to follow table
+        currentFactory.getFollowDAO().unfollow(request.getAuthToken().getUserAlias(), request.getFollowee().getAlias());
+        // decrement currentUser followingCount
+        currentFactory.getUserDAO().updateFollowingCount(request.getAuthToken().getUserAlias(), -1);
+        // decrement other user's followersCount
+        currentFactory.getUserDAO().updateFollowersCount(request.getFollowee().getAlias(), -1);
+
+        return new UnfollowResponse();
     }
 }

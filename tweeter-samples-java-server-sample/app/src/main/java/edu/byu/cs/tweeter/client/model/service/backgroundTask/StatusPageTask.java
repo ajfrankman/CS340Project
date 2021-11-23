@@ -16,7 +16,7 @@ public abstract class StatusPageTask extends PagedTask<Status> {
      * The user whose story is being retrieved.
      * (This can be any user, not just the currently logged-in user.)
      */
-    private User targetUser;
+    protected User targetUser;
 
     public StatusPageTask(Handler messageHandler, AuthToken authToken, int limit, Status lastItem, User targetUser) {
         super(messageHandler, authToken, limit, lastItem);

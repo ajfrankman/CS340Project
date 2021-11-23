@@ -27,12 +27,17 @@ public class DynamoDBFactory implements DAOFactory {
     }
 
     @Override
-    public StatusPageDAO getStatusPageDAO() {
-        return new StatusPageDAO();
+    public FollowDAO getFollowDAO() {
+        return new FollowDAO();
     }
 
     @Override
-    public FollowDAO getFollowDAO() {
-        return new FollowDAO();
+    public FeedDAO getFeedDAO() {
+        return new FeedDAO();
+    }
+
+    @Override
+    public StoryDAO getStoryDAO() {
+        return new StoryDAO();
     }
 }
