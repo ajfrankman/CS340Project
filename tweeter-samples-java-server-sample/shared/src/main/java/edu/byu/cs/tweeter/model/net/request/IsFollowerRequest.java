@@ -4,9 +4,9 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class IsFollowerRequest {
-    AuthToken authToken;
-    User Follower;
-    User Followee;
+    public AuthToken authToken;
+    public User Follower;
+    public User Followee;
 
     IsFollowerRequest() {}
 

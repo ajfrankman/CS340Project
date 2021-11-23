@@ -53,7 +53,7 @@ public class StoryDAO implements StoryDAOInterface {
                 item = iterator.next();
                 dynamoStatusList.add(new DynamoStoryStatus(
                         item.getString("post"),
-                        item.getString("postedBy"),
+                        item.getString("user_handle"),
                         item.getString("date"),
                         item.getList("urls"),
                         item.getList("mentions")

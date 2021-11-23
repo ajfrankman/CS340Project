@@ -35,6 +35,7 @@ public class StatusPageService {
         Collections.reverse(statuses);
         for (int i = 0; i < dynamoStoryStatus.size(); i++) {
             User user = currentFactory.getUserDAO().getUser(dynamoStoryStatus.get(i).getUserAlias());
+            System.out.println("User getname: " + user.getName());
             Status status = new Status(
                     dynamoStoryStatus.get(i).getPost(),
                     user,
@@ -44,7 +45,6 @@ public class StatusPageService {
             );
             statuses.add(status);
         }
-
         return new StoriesResponse(statuses, hasMorePages);
     }
 

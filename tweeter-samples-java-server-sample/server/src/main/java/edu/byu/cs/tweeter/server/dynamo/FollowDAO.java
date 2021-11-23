@@ -54,13 +54,10 @@ public class FollowDAO implements FollowDAOInterface {
         Table followsTable = dynamoDB.getTable("follows");
 
         GetItemSpec getItemSpec = new GetItemSpec().withPrimaryKey("follower_handle", followerHandle, "followee_handle", followeeHandle);
-
-        try {
-            followsTable.getItem(getItemSpec);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        System.out.println("before outcome");
+        Item outcome = followsTable.getItem(getItemSpec);
+        System.out.println("after outcome");
+        return outcome != null;
     }
 
     public void follow(String userAlias, String followee) {
