@@ -163,6 +163,8 @@ public class FollowingFragment extends Fragment implements UserView {
         }
     }
 
+
+
     /**
      * The adapter for the RecyclerView that displays the Following data.
      */

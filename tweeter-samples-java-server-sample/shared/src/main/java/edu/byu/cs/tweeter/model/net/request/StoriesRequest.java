@@ -4,9 +4,9 @@ import edu.byu.cs.tweeter.model.domain.Status;
 
 public class StoriesRequest {
 
-    private Status lastStatus;
-    private int limit;
-    private String userAlias;
+    public Status lastStatus;
+    public int limit;
+    public String userAlias;
 
     private StoriesRequest() {}
 

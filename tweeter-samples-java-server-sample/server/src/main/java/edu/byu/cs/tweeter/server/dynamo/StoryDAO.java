@@ -26,16 +26,22 @@ import edu.byu.cs.tweeter.server.factoryinterfaces.StoryDAOInterface;
 public class StoryDAO implements StoryDAOInterface {
 
     public Pair<List<DynamoStoryStatus>, Boolean> getStory(String alias, Status lastStatus, int limit) {
+        System.out.println("start getStory()");
         List<DynamoStoryStatus> dynamoStatusList = new ArrayList<>();
+        System.out.println("afterlist getStory()");
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        System.out.println("after client getStory()");
         DynamoDB dynamoDB = new DynamoDB(client);
+        System.out.println("getTable getStory()");
         Table feedTable = dynamoDB.getTable("story");
+        System.out.println("after getTable getStory()");
 
         HashMap<String, Object> valueMap = new HashMap<String, Object>();
         valueMap.put(":f", alias);
-
+        System.out.println("hasMorePages getStory()");
         boolean hasMorePages = true;
 
+        System.out.println("queryspec getStory()");
         QuerySpec querySpec = new QuerySpec().withKeyConditionExpression("user_handle = :f")
                 .withValueMap(valueMap).withMaxResultSize(limit);
 
@@ -47,6 +53,7 @@ public class StoryDAO implements StoryDAOInterface {
             querySpec.withExclusiveStartKey("user_handle", alias, "date", lastStatus.getDate());
         }
         items = feedTable.query(querySpec);
+        System.out.println("before try getStory()");
         try {
             iterator = items.iterator();
             while (iterator.hasNext()) {
@@ -64,9 +71,10 @@ public class StoryDAO implements StoryDAOInterface {
                 hasMorePages = false;
             }
         } catch (Exception e) {
+            System.out.println("exception getStory()");
             throw e;
         }
-
+        System.out.println("return getStory()");
         return new Pair<>(dynamoStatusList, hasMorePages);
     }
 
