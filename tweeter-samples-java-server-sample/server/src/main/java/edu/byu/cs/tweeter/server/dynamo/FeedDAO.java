@@ -70,10 +70,11 @@ public class FeedDAO implements FeedDAOInterface {
     public void addStatus(Item status) {
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
-        Table storyTable = dynamoDB.getTable("feed");
-
+        Table feedTable = dynamoDB.getTable("feed");
+        System.out.println("inside feed addstatus");
         try {
-            PutItemOutcome outcome = storyTable.putItem(status);
+            PutItemOutcome outcome = feedTable.putItem(status);
+            System.out.println("after outcome");
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw e;

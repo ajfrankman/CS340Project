@@ -38,6 +38,8 @@ public class Status implements Serializable {
         this.datetime = datetime;
         this.urls = urls;
         this.mentions = mentions;
+//        this.urls.addAll(urls);
+//        this.mentions.addAll(mentions);
     }
 
     public void setUser(User user) {

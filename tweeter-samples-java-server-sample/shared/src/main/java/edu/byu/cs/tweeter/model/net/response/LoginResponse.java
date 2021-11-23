@@ -13,7 +13,7 @@ public class LoginResponse extends Response {
     public AuthToken authToken;
 
     public LoginResponse() {
-        super(false, "default");
+        super(false, "Could not find user");
     }
 
     /**

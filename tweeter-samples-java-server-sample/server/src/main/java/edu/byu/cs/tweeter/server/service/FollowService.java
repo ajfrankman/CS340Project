@@ -17,6 +17,7 @@ import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
 import edu.byu.cs.tweeter.model.net.response.IsFollowerResponse;
+import edu.byu.cs.tweeter.model.net.response.PostStatusResponse;
 import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
 import edu.byu.cs.tweeter.model.util.Pair;
 import edu.byu.cs.tweeter.server.dynamo.DynamoDBFactory;
@@ -101,6 +102,9 @@ public class FollowService {
         if (request.getAuthToken() == null || request.getTargetUser() == null) {
             throw new RuntimeException("Invalid request object");
         }
+        if (!currentFactory.getAuthDAO().goodAuthToken(request.getAuthToken())) {
+            return new GetFollowersCountResponse("invalid AuthToken");
+        }
 
 
         // Return the followers count of a given user.
@@ -113,6 +117,9 @@ public class FollowService {
         if (request.getAuthToken() == null || request.getTargetUser() == null) {
             throw new RuntimeException("Invalid request object");
         }
+        if (!currentFactory.getAuthDAO().goodAuthToken(request.getAuthToken())) {
+            return new GetFollowingCountResponse("invalid AuthToken");
+        }
 
         // Return the following count of a given user.
         int followingCount = currentFactory.getUserDAO().getUserFollowingCount(request.getTargetUser().getAlias());
@@ -123,6 +130,9 @@ public class FollowService {
     public FollowResponse follow(FollowRequest request) {
         if (request.getAuthToken() == null || request.getFollowee() == null) {
             throw new RuntimeException("Invalid FollowRequest object");
+        }
+        if (!currentFactory.getAuthDAO().goodAuthToken(request.getAuthToken())) {
+            return new FollowResponse("invalid AuthToken");
         }
 
         // add follow relationship to follow table
@@ -138,6 +148,9 @@ public class FollowService {
     public UnfollowResponse unfollow(UnfollowRequest request) {
         if (request.getAuthToken() == null || request.getFollowee() == null) {
             throw new RuntimeException("Invalid UnfollowRequest object");
+        }
+        if (!currentFactory.getAuthDAO().goodAuthToken(request.getAuthToken())) {
+            return new UnfollowResponse("invalid AuthToken");
         }
 
         // add follow relationship to follow table

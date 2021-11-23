@@ -81,7 +81,7 @@ public class RegisterTask extends BackgroundTask {
 
     private Pair<User, AuthToken> doRegister() {
 
-        RegisterRequest registerRequest = new RegisterRequest(this.username, this.password, this.username, this.password, this.image);
+        RegisterRequest registerRequest = new RegisterRequest(this.firstName, this.lastName, this.username, this.password, this.image);
         RegisterResponse registerResponse = null;
         try {
             registerResponse = getServerFacade().register(registerRequest, URL_PATH);

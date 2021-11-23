@@ -9,6 +9,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FeedRequest;
 import edu.byu.cs.tweeter.model.net.request.StoriesRequest;
 import edu.byu.cs.tweeter.model.net.response.FeedResponse;
+import edu.byu.cs.tweeter.model.net.response.PostStatusResponse;
 import edu.byu.cs.tweeter.model.net.response.StoriesResponse;
 import edu.byu.cs.tweeter.model.util.Pair;
 import edu.byu.cs.tweeter.server.dynamo.FeedDAO;
@@ -25,6 +26,11 @@ public class StatusPageService {
 
     public StoriesResponse getStories(StoriesRequest request) {
         if (request.getLimit() < 1) throw new RuntimeException("Invalid request object");
+
+        if (!currentFactory.getAuthDAO().goodAuthToken(request.getAuthToken())) {
+            return new StoriesResponse("invalid AuthToken");
+        }
+
         // given a user and lastStatus get next ten or less statuses from feed table.
         System.out.println("startStories");
         Pair<List<StoryDAO.DynamoStoryStatus>, Boolean> responsePair = currentFactory.getStoryDAO().getStory(request.userAlias, request.lastStatus, request.limit);
@@ -53,6 +59,10 @@ public class StatusPageService {
 
     public FeedResponse getFeed(FeedRequest request) {
         if (request.getLimit() < 1) throw new RuntimeException("Invalid request object");
+
+        if (!currentFactory.getAuthDAO().goodAuthToken(request.getAuthToken())) {
+            return new FeedResponse("invalid AuthToken");
+        }
 
         // given a user and lastStatus get next ten or less statuses from feed table.
 

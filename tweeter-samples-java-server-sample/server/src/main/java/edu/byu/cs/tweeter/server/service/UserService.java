@@ -7,6 +7,7 @@ import com.amazonaws.services.dynamodbv2.document.Table;
 import org.apache.commons.logging.Log;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
@@ -84,6 +85,10 @@ public class UserService {
         if (request.getAlias() == null || request.getAuthToken() == null) {
             throw new RuntimeException("Invalid UserRequest object");
         }
+        // Authentication
+        if (!currentFactory.getAuthDAO().goodAuthToken(request.getAuthToken())) {
+            return new UserResponse("invalid AuthToken");
+        }
         // getUser()
         User user = currentFactory.getUserDAO().getUser(request.getAlias());
         // Create Response()
@@ -94,23 +99,28 @@ public class UserService {
         if (postStatusRequest.getStatus() == null || postStatusRequest.getAuthToken() == null) {
             throw new RuntimeException("Invalid request object");
         }
+        if (!currentFactory.getAuthDAO().goodAuthToken(postStatusRequest.getAuthToken())) {
+            return new PostStatusResponse("invalid AuthToken");
+        }
         // create item to add to table
         Item status = new Item().withPrimaryKey("user_handle", postStatusRequest.getStatus().getUser().getAlias(), "date", postStatusRequest.getStatus().getDate())
                 .with("post", postStatusRequest.getStatus().getPost())
-                .with("mentions", postStatusRequest.getStatus().getMentions().toString())
-                .with("urls", postStatusRequest.getStatus().getUrls().toString());
+                .with("mentions", postStatusRequest.getStatus().getMentions())
+                .with("urls", postStatusRequest.getStatus().getUrls());
         // add status to story table
         currentFactory.getStoryDAO().addStatus(status);
 
         Pair<List<String>, Boolean> resultPair = currentFactory.getFollowDAO().getFollowersAlias(postStatusRequest.getStatus().getUser().getAlias(), null, 10);
         List<String> aliasList = resultPair.getFirst();
 
+        System.out.println("aliasList size: " + aliasList.size());
+
         for (int i = 0; i < aliasList.size(); i++) {
             Item feedStatus = new Item().withPrimaryKey("user_handle", aliasList.get(i), "date", postStatusRequest.getStatus().getDate())
                     .with("postedBy", postStatusRequest.getStatus().getUser().getAlias())
                     .with("post", postStatusRequest.getStatus().getPost())
-                    .with("mentions", postStatusRequest.getStatus().getMentions().toString())
-                    .with("urls", postStatusRequest.getStatus().getUrls().toString());
+                    .with("mentions", postStatusRequest.getStatus().getMentions())
+                    .with("urls", postStatusRequest.getStatus().getUrls());
 
             currentFactory.getFeedDAO().addStatus(feedStatus);
         }
