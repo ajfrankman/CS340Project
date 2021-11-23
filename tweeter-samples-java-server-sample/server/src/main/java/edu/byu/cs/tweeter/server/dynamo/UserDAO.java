@@ -42,27 +42,6 @@ public class UserDAO implements UserDAOInterface {
 
     // TODO make sure all authorized tasks check for an authtoken
 
-    public LogoutResponse logout(LogoutRequest request) {
-        if (request.getAuthToken() == null) {
-            throw new RuntimeException("Invalid request object");
-        }
-
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
-        DynamoDB dynamoDB = new DynamoDB(client);
-
-        // Remove authtoken from table
-        Table authTable = dynamoDB.getTable("auth_table");
-        DeleteItemSpec deleteItemSpec = new DeleteItemSpec().withPrimaryKey(new PrimaryKey("authtoken", request.getAuthToken()));
-        try {
-            authTable.deleteItem(deleteItemSpec);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw e;
-        }
-        // TODO: Still isn't deleting but IDK why?
-        return new LogoutResponse();
-    }
-
     public User getUser(String alias) {
         // get the user table
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
@@ -73,8 +52,6 @@ public class UserDAO implements UserDAOInterface {
         AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
         String fileName = String.format("%s_profile_image", alias);
         URL url = s3.getUrl("ppictures", fileName);
-
-        System.out.println("filename: " + fileName);
 
         // get User info
         GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", alias);
@@ -91,38 +68,36 @@ public class UserDAO implements UserDAOInterface {
         return user;
     }
 
-    public void addUser(RegisterRequest request) {
+    public void addUser(String alias, String firstName, String lastName, String password) {
         // Add user to table
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
         Table table = dynamoDB.getTable("users");
         try {
             PutItemOutcome outcome = table.putItem(new Item()
-                    .withPrimaryKey("user_handle", request.getAlias())
-                    .with("firstName", request.getFirstName())
-                    .with("lastName", request.getLastName())
-                    .with("password", request.getPassword())
+                    .withPrimaryKey("user_handle", alias)
+                    .with("firstName", firstName)
+                    .with("lastName", lastName)
+                    .with("password", password)
                     .with("followingCount", 0)
                     .with("followersCount", 0));
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw e;
         }
-
-
     }
 
-    public URL addUserImage(RegisterRequest request) {
+    public URL addUserImage(String alias, String image) {
         // Add Image to s3 Bucket
         URL url = null;
         try {
             AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
 
             // Create user profile image file to upload to s3.
-            String fileName = String.format("%s_profile_image", request.getAlias());
+            String fileName = String.format("%s_profile_image", alias);
 
             // Get image bytes.
-            byte[] imageBytes = Base64.getDecoder().decode(request.getImageBytesBase64());
+            byte[] imageBytes = Base64.getDecoder().decode(image);
 
             // Set image metadata
             ObjectMetadata metadata = new ObjectMetadata();

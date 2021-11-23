@@ -8,6 +8,9 @@ import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.model.Get;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -50,6 +53,26 @@ public class AuthDAO implements AuthDAOInterface {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw e;
+        }
+    }
+
+    @Override
+    public Boolean goodAuthToken(AuthToken authToken) {
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+
+        // Remove authtoken from table
+        Table authTable = dynamoDB.getTable("auth_table");
+
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("authtoken", authToken.getToken());
+        try {
+            Item outcome = authTable.getItem(spec);
+            LocalDateTime past = LocalDateTime.parse(outcome.getString("time"));
+            LocalDateTime localDateTime = LocalDateTime.now();
+            return past.getYear() == localDateTime.getYear() &&
+                    past.getDayOfYear() == localDateTime.getDayOfYear();
+        } catch (Exception e) {
+            return false;
         }
     }
 }

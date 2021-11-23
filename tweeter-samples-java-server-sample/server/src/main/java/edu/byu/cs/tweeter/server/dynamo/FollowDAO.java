@@ -113,10 +113,6 @@ public class FollowDAO implements FollowDAOInterface {
 
         boolean hasMorePages = true;
 
-        String lastFollowerHandle = lastFollowerAlias;
-        String currentUser = currentUserAlias;
-
-
         QuerySpec querySpec = new QuerySpec().withKeyConditionExpression("follower_handle = :f")
                 .withValueMap(valueMap).withMaxResultSize(limit);
 
@@ -124,8 +120,8 @@ public class FollowDAO implements FollowDAOInterface {
         Iterator<Item> iterator = null;
         Item item = null;
 
-        if (lastFollowerHandle != null) {
-            querySpec.withExclusiveStartKey("follower_handle", currentUser, "followee_handle", lastFollowerHandle);
+        if (lastFollowerAlias != null) {
+            querySpec.withExclusiveStartKey("follower_handle", currentUserAlias, "followee_handle", lastFollowerAlias);
         }
         items = table.query(querySpec);
         try {

@@ -44,7 +44,7 @@ public class M4Tests {
     @Before
     public void setup() {
         // Setup valid and invalid requests to be used in the tests
-        validRequest = new StoriesRequest(fakeData.getFakeStatuses().get(0), 5);
+        validRequest = new StoriesRequest(fakeData.getFakeStatuses().get(0), 5, fakeData.getFakeStatuses().get(0).getUser().getAlias());
 
         // Setup success and failure responses to be used in the tests
         List<Status> success_statuses = Arrays.asList(fakeData.getFakeStatuses().get(0), fakeData.getFakeStatuses().get(1), fakeData.getFakeStatuses().get(2), fakeData.getFakeStatuses().get(3), fakeData.getFakeStatuses().get(4));

@@ -35,9 +35,9 @@ public class GetFeedTask extends StatusPageTask {
     protected Pair<List<Status>, Boolean> getItems() {
         FeedRequest feedRequest;
         if (lastItem == null) {
-            feedRequest = new FeedRequest(null, limit);
+            feedRequest = new FeedRequest(null, limit, targetUser.getAlias());
         } else {
-            feedRequest = new FeedRequest(lastItem, limit);
+            feedRequest = new FeedRequest(lastItem, limit, targetUser.getAlias());
         }
 
         FeedResponse feedResponse;

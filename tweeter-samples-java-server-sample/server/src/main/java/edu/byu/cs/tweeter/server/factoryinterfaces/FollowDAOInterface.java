@@ -18,12 +18,13 @@ import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
 import edu.byu.cs.tweeter.model.net.response.IsFollowerResponse;
 import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
+import edu.byu.cs.tweeter.model.util.Pair;
 
 public interface FollowDAOInterface {
 
     public Boolean isFollower(String followerHandle, String followeeHandle);
-
     public void follow(String userAlias, String followee);
-
     public void unfollow(String userAlias, String followee);
+    public Pair<List<String>, Boolean> getFollowersAlias(String currentUserAlias, String lastFollowerAlias, int limit);
+    public Pair<List<String>, Boolean> getFollowingAlias(String currentUserAlias, String lastFolloweeAlias, int limit);
 }

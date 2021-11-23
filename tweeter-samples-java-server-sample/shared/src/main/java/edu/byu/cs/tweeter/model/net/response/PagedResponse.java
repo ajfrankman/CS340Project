@@ -36,4 +36,8 @@ public class PagedResponse extends Response {
     public void setHasMorePages(boolean hasMorePages) {
         this.hasMorePages = hasMorePages;
     }
+
+    public boolean isHasMorePages() {
+        return hasMorePages;
+    }
 }

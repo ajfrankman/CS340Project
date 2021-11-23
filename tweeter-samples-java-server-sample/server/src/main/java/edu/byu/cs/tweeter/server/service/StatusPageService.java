@@ -2,6 +2,7 @@ package edu.byu.cs.tweeter.server.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -25,12 +26,13 @@ public class StatusPageService {
     public StoriesResponse getStories(StoriesRequest request) {
         if (request.getLimit() < 1) throw new RuntimeException("Invalid request object");
         // given a user and lastStatus get next ten or less statuses from feed table.
-        Pair<List<StoryDAO.DynamoStoryStatus>, Boolean> responsePair = currentFactory.getStoryDAO().getStory(request.getLastStatus().getUser().getAlias(), request.getLastStatus(), request.getLimit());
+        Pair<List<StoryDAO.DynamoStoryStatus>, Boolean> responsePair = currentFactory.getStoryDAO().getStory(request.getUserAlias(), request.getLastStatus(), request.getLimit());
         List<StoryDAO.DynamoStoryStatus> dynamoStoryStatus = responsePair.getFirst();
         Boolean hasMorePages = responsePair.getSecond();
         // Convert dynamoStatusResponse objects into Statuses
 
         List<Status> statuses = new ArrayList<>();
+        Collections.reverse(statuses);
         for (int i = 0; i < dynamoStoryStatus.size(); i++) {
             User user = currentFactory.getUserDAO().getUser(dynamoStoryStatus.get(i).getUserAlias());
             Status status = new Status(
@@ -50,11 +52,12 @@ public class StatusPageService {
         if (request.getLimit() < 1) throw new RuntimeException("Invalid request object");
 
         // given a user and lastStatus get next ten or less statuses from feed table.
-        Pair<List<FeedDAO.DynamoFeedStatus>, Boolean> responsePair = currentFactory.getFeedDAO().getFeed(request.getLastStatus().getUser().getAlias(), request.getLastStatus(), request.getLimit());
+        Pair<List<FeedDAO.DynamoFeedStatus>, Boolean> responsePair = currentFactory.getFeedDAO().getFeed(request.getUserAlias(), request.getLastStatus(), request.getLimit());
         List<FeedDAO.DynamoFeedStatus> dynamoFeedStatus = responsePair.getFirst();
         Boolean hasMorePages = responsePair.getSecond();
         // Convert dynamoStatusResponse objects into Statuses
         List<Status> statuses = new ArrayList<>();
+        Collections.reverse(statuses);
         for (int i = 0; i < dynamoFeedStatus.size(); i++) {
             User user = currentFactory.getUserDAO().getUser(dynamoFeedStatus.get(i).getUserAlias());
             Status status = new Status(

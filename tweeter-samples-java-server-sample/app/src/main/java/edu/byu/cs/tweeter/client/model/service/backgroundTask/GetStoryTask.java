@@ -33,9 +33,9 @@ public class GetStoryTask extends StatusPageTask {
     protected Pair<List<Status>, Boolean> getItems() {
         StoriesRequest storiesRequest;
         if (lastItem == null) {
-            storiesRequest = new StoriesRequest(null, limit);
+            storiesRequest = new StoriesRequest(null, limit, targetUser.getAlias());
         } else {
-            storiesRequest = new StoriesRequest(lastItem, limit);
+            storiesRequest = new StoriesRequest(lastItem, limit, targetUser.getAlias());
         }
 
         StoriesResponse storiesResponse;

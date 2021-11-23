@@ -1,5 +1,7 @@
 package edu.byu.cs.tweeter.server.factoryinterfaces;
 
+import java.net.URL;
+
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
@@ -14,10 +16,11 @@ import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.model.net.response.UserResponse;
 
 public interface UserDAOInterface {
-    // public LoginResponse login(LoginRequest request);
-    // public RegisterResponse register(RegisterRequest request);
-    public LogoutResponse logout(LogoutRequest request);
-    // public UserResponse getUser(UserRequest request);
+    public void addUser(String alias, String firstName, String lastName, String password);
     public User getUser(String userAlias);
-    // public PostStatusResponse postStatus(PostStatusRequest postStatusRequest);
+    public URL addUserImage(String alias, String image);
+    public void updateFollowingCount(String userAlias, int update);
+    public void updateFollowersCount(String userAlias, int update);
+    public int getUserFollowingCount(String userAlias);
+    public int getUserFollowersCount(String userAlias);
 }

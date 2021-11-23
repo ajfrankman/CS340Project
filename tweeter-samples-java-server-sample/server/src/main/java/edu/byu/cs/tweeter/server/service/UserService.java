@@ -57,9 +57,9 @@ public class UserService {
         }
 
         // add User()
-        currentFactory.getUserDAO().addUser(request);
+        currentFactory.getUserDAO().addUser(request.getAlias(), request.getFirstName(), request.getLastName(), request.getPassword());
         // add image()
-        URL url = currentFactory.getUserDAO().addUserImage(request);
+        URL url = currentFactory.getUserDAO().addUserImage(request.getAlias(), request.getImageBytesBase64());
         // getUser() **maybe just create here without grabbing?**
         User registeredUser = new User(request.getFirstName(), request.getLastName(), request.getAlias(), url.toString());
         // generateAuthToken()

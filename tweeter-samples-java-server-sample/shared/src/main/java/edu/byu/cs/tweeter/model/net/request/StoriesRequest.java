@@ -6,12 +6,14 @@ public class StoriesRequest {
 
     private Status lastStatus;
     private int limit;
+    private String userAlias;
 
     private StoriesRequest() {}
 
-    public StoriesRequest(Status lastStatus, int limit) {
+    public StoriesRequest(Status lastStatus, int limit, String userAlias) {
         this.lastStatus = lastStatus;
         this.limit = limit;
+        this.userAlias = userAlias;
     }
 
     public Status getLastStatus() {
@@ -28,5 +30,13 @@ public class StoriesRequest {
 
     public void setLimit(int limit) {
         this.limit = limit;
+    }
+
+    public String getUserAlias() {
+        return userAlias;
+    }
+
+    public void setUserAlias(String userAlias) {
+        this.userAlias = userAlias;
     }
 }
