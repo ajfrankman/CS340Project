@@ -52,9 +52,12 @@ public class RegisterPresenter extends SuperPresenter implements RegisterService
     }
 
     public void register(String firstName, String lastName, String alias, String password, ImageView imageToUpload) {
-        String message = validateRegistration(firstName, lastName, alias, password, imageToUpload);
+        String hashword = String.valueOf(password.hashCode());
+
+        String message = validateRegistration(firstName, lastName, alias, hashword, imageToUpload);
         ((AuthenticationView)view).clearErrorMessage();
         ((AuthenticationView)view).clearInfoMessage();
+
 
         if (message == null) {
             ((AuthenticationView)view).displayInfoMessage("Registering...");
@@ -64,7 +67,7 @@ public class RegisterPresenter extends SuperPresenter implements RegisterService
             image.compress(Bitmap.CompressFormat.JPEG, 100, bos);
             byte[] imageBytes = bos.toByteArray();
             String imageBytesBase64 = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
-            new RegisterService().register(firstName, lastName, alias, password, imageBytesBase64, this);
+            new RegisterService().register(firstName, lastName, alias, hashword, imageBytesBase64, this);
         } else view.displayErrorMessage("Register Failed: " + message);
 
 

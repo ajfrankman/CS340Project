@@ -16,7 +16,7 @@ import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.model.net.response.UserResponse;
 
 public interface UserDAOInterface {
-    public void addUser(String alias, String firstName, String lastName, String password);
+    public void addUser(String alias, String firstName, String lastName, String password, String imageURL);
     public User getUser(String userAlias);
     public URL addUserImage(String alias, String image);
     public void updateFollowingCount(String userAlias, int update);

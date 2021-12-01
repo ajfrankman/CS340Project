@@ -3,15 +3,18 @@ package edu.byu.cs.tweeter.server.dynamo;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -22,6 +25,8 @@ import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
@@ -48,10 +53,8 @@ public class UserDAO implements UserDAOInterface {
         DynamoDB dynamoDB = new DynamoDB(client);
         Table userTable = dynamoDB.getTable("users");
 
-        // get photo link from s3
-        AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
-        String fileName = String.format("%s_profile_image", alias);
-        URL url = s3.getUrl("ppictures", fileName);
+        // TODO check Password
+
 
         // get User info
         GetItemSpec spec = new GetItemSpec().withPrimaryKey("user_handle", alias);
@@ -59,7 +62,7 @@ public class UserDAO implements UserDAOInterface {
         try {
             Item outcome = userTable.getItem(spec);
             System.out.println("GetItem succeeded: " + outcome);
-            user = new User(outcome.getString("firstName"), outcome.getString("lastName"), outcome.getString("user_handle"), url.toString());
+            user = new User(outcome.getString("firstName"), outcome.getString("lastName"), outcome.getString("user_handle"), outcome.getString("imageURL"));
         } catch (Exception e) {
             System.err.println("Unable to read item");
             throw e;
@@ -68,7 +71,7 @@ public class UserDAO implements UserDAOInterface {
         return user;
     }
 
-    public void addUser(String alias, String firstName, String lastName, String password) {
+    public void addUser(String alias, String firstName, String lastName, String password, String imageURL) {
         // Add user to table
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
@@ -80,7 +83,8 @@ public class UserDAO implements UserDAOInterface {
                     .with("lastName", lastName)
                     .with("password", password)
                     .with("followingCount", 0)
-                    .with("followersCount", 0));
+                    .with("followersCount", 0)
+                    .with("imageURL", imageURL));
         } catch (Exception e) {
             System.out.println(e.getMessage());
             throw e;
@@ -179,5 +183,52 @@ public class UserDAO implements UserDAOInterface {
             throw e;
         }
         return followersCount;
+    }
+
+    public void addUserBatch(List<User> users) {
+
+        // Constructor for TableWriteItems takes the name of the table, which I have stored in TABLE_USER
+        TableWriteItems items = new TableWriteItems("users");
+
+        // Add each user into the TableWriteItems object
+        for (User user : users) {
+            Item item = new Item()
+                    .withPrimaryKey("user_handle", user.getAlias())
+                    .with("firstName", user.getFirstName())
+                    .with("lastName", user.getLastName())
+                    .with("password", "password")
+                    .with("followingCount", 0)
+                    .with("followersCount", 0)
+                    .with("imageURL", user.getImageUrl());
+            items.addItemToPut(item);
+
+            // 25 is the maximum number of items allowed in a single batch write.
+            // Attempting to write more than 25 items will result in an exception being thrown
+            if (items.getItemsToPut() != null && items.getItemsToPut().size() == 25) {
+                loopBatchWrite(items);
+                items = new TableWriteItems("users");
+            }
+        }
+
+        // Write any leftover items
+        if (items.getItemsToPut() != null && items.getItemsToPut().size() > 0) {
+            loopBatchWrite(items);
+        }
+    }
+
+    private void loopBatchWrite(TableWriteItems items) {
+
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+
+        // The 'dynamoDB' object is of type DynamoDB and is declared statically in this example
+        BatchWriteItemOutcome outcome = dynamoDB.batchWriteItem(items);
+
+        // Check the outcome for items that didn't make it onto the table
+        // If any were not added to the table, try again to write the batch
+        while (outcome.getUnprocessedItems().size() > 0) {
+            Map<String, List<WriteRequest>> unprocessedItems = outcome.getUnprocessedItems();
+            outcome = dynamoDB.batchWriteItemUnprocessed(unprocessedItems);
+        }
     }
 }

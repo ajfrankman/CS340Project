@@ -36,11 +36,11 @@ public class LoginPresenter extends SuperPresenter implements LoginService.Login
     public void login(String alias, String password) {
         ((AuthenticationView)view).clearErrorMessage();
         ((AuthenticationView)view).clearInfoMessage();
-
-        String message = validateLogin(alias, password);
+        String hashword = String.valueOf(password.hashCode());
+        String message = validateLogin(alias, hashword);
         if(message == null) {
             ((AuthenticationView)view).displayInfoMessage("Logging In...");
-            new LoginService().login(alias, password, this);
+            new LoginService().login(alias, hashword, this);
         } else view.displayErrorMessage("Login Failed: " + message);
     }
 }

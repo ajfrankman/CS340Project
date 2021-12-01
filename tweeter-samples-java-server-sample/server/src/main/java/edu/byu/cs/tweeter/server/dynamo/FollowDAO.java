@@ -3,6 +3,7 @@ package edu.byu.cs.tweeter.server.dynamo;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DeleteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Index;
@@ -11,8 +12,10 @@ import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
@@ -76,7 +79,7 @@ public class FollowDAO implements FollowDAOInterface {
 
     public void follow(String userAlias, String followee) {
         // Still need to test.
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-east-2").build();
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
         Table table = dynamoDB.getTable("follows");
 
@@ -84,9 +87,9 @@ public class FollowDAO implements FollowDAOInterface {
             System.out.println("Adding a new item...");
             PutItemOutcome outcome = table.putItem(new Item()
                     .withPrimaryKey("follower_handle",
-                            userAlias,
+                            followee,
                             "followee_handle",
-                            followee));
+                            userAlias));
             System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
 
         } catch (Exception e) {
@@ -97,14 +100,14 @@ public class FollowDAO implements FollowDAOInterface {
     }
 
     public void unfollow(String userAlias, String followee) {
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-east-2").build();
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
         Table table = dynamoDB.getTable("follows");
 
         try {
             System.out.println("Removing an item...");
             DeleteItemOutcome outcome = table.deleteItem("follower_handle",
-                    userAlias, "followee_handle", followee);
+                    followee, "followee_handle", userAlias);
             System.out.println("Delete succeeded:\n" + outcome.getDeleteItemResult());
         } catch (Exception e) {
             System.err.println("Unable to delete item.");
@@ -195,5 +198,48 @@ public class FollowDAO implements FollowDAOInterface {
         }
         Pair<List<String>, Boolean> resultPair = new Pair<>(aliasList, hasMorePages);
         return resultPair;
+    }
+
+
+
+    public void addFollowersBatch(List<String> users, String followTarget) {
+
+        // Constructor for TableWriteItems takes the name of the table, which I have stored in TABLE_USER
+        TableWriteItems items = new TableWriteItems("follows");
+
+        // Add each user into the TableWriteItems object
+        for (String alias : users) {
+            Item item = new Item()
+                    .withPrimaryKey("follower_handle", followTarget, "followee_handle", alias) ;
+            items.addItemToPut(item);
+
+            // 25 is the maximum number of items allowed in a single batch write.
+            // Attempting to write more than 25 items will result in an exception being thrown
+            if (items.getItemsToPut() != null && items.getItemsToPut().size() == 25) {
+                loopBatchWrite(items);
+                items = new TableWriteItems("follows");
+            }
+        }
+
+        // Write any leftover items
+        if (items.getItemsToPut() != null && items.getItemsToPut().size() > 0) {
+            loopBatchWrite(items);
+        }
+    }
+
+    private void loopBatchWrite(TableWriteItems items) {
+
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+
+        // The 'dynamoDB' object is of type DynamoDB and is declared statically in this example
+        BatchWriteItemOutcome outcome = dynamoDB.batchWriteItem(items);
+
+        // Check the outcome for items that didn't make it onto the table
+        // If any were not added to the table, try again to write the batch
+        while (outcome.getUnprocessedItems().size() > 0) {
+            Map<String, List<WriteRequest>> unprocessedItems = outcome.getUnprocessedItems();
+            outcome = dynamoDB.batchWriteItemUnprocessed(unprocessedItems);
+        }
     }
 }

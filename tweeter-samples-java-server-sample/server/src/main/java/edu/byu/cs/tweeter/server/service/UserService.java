@@ -24,6 +24,7 @@ import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.model.net.response.UserResponse;
 import edu.byu.cs.tweeter.model.util.Pair;
 import edu.byu.cs.tweeter.server.dynamo.DynamoDBFactory;
+import edu.byu.cs.tweeter.server.dynamo.FollowDAO;
 import edu.byu.cs.tweeter.server.dynamo.UserDAO;
 import edu.byu.cs.tweeter.server.factoryinterfaces.DAOFactory;
 
@@ -57,10 +58,10 @@ public class UserService {
             throw new RuntimeException("Invalid RegisterRequest object");
         }
 
-        // add User()
-        currentFactory.getUserDAO().addUser(request.getAlias(), request.getFirstName(), request.getLastName(), request.getPassword());
         // add image()
         URL url = currentFactory.getUserDAO().addUserImage(request.getAlias(), request.getImageBytesBase64());
+        // add User()
+        currentFactory.getUserDAO().addUser(request.getAlias(), request.getFirstName(), request.getLastName(), request.getPassword(), url.toString());
         // getUser() **maybe just create here without grabbing?**
         User registeredUser = new User(request.getFirstName(), request.getLastName(), request.getAlias(), url.toString());
         // generateAuthToken()
@@ -126,5 +127,44 @@ public class UserService {
         }
 
         return new PostStatusResponse();
+    }
+
+    public static void main(String[] args) {
+// Get instance of DAOs by way of the Abstract Factory Pattern
+        DynamoDBFactory daoFactory = DynamoDBFactory.getInstance();
+        daoFactory.getUserDAO();
+        UserDAO userDAO = daoFactory.getUserDAO();
+        FollowDAO followDAO = daoFactory.getFollowDAO();
+
+
+        List<String> followers = new ArrayList<>();
+        List<User> users = new ArrayList<>();
+
+        String MALE_IMAGE_URL = "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png";
+
+        // Iterate over the number of users you will create
+        for (int i = 1; i <= 10000; i++) {
+
+            String name = "Guy " + i;
+            String alias = "@guy" + i;
+
+
+            // Note that in this example, a UserDTO only has a name and an alias.
+            // The url for the profile image can be derived from the alias in this example
+            User user = new User(name, "lastName", alias, MALE_IMAGE_URL);
+            users.add(user);
+
+            // Note that in this example, to represent a follows relationship, only the aliases
+            // of the two users are needed
+            followers.add(alias);
+        }
+
+        // Call the DAOs for the database logic
+        if (users.size() > 0) {
+            userDAO.addUserBatch(users);
+        }
+        if (followers.size() > 0) {
+            followDAO.addFollowersBatch(followers, "@superUser");
+        }        // UserDAO add batch
     }
 }
