@@ -10,4 +10,6 @@ dependencies {
     testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
     implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.11.547'
     implementation 'com.amazonaws:aws-java-sdk-core:1.11.547'
+    implementation 'com.amazonaws:aws-java-sdk-sqs:1.11.977'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.7.0'
 }

@@ -2,20 +2,26 @@ package edu.byu.cs.tweeter.server.dynamo;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import edu.byu.cs.tweeter.model.domain.FeedUpdater;
 import edu.byu.cs.tweeter.model.domain.Status;
+import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.util.Pair;
 import edu.byu.cs.tweeter.server.factoryinterfaces.FeedDAOInterface;
 
@@ -67,6 +73,7 @@ public class FeedDAO implements FeedDAOInterface {
         return new Pair<>(dynamoStatusList, hasMorePages);
     }
 
+
     public void addStatus(Item status) {
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
         DynamoDB dynamoDB = new DynamoDB(client);
@@ -80,6 +87,54 @@ public class FeedDAO implements FeedDAOInterface {
             throw e;
         }
     }
+
+
+    public void addStatusBatch(FeedUpdater feedUpdater) {
+
+        // Constructor for TableWriteItems takes the name of the table, which I have stored in TABLE_USER
+        TableWriteItems items = new TableWriteItems("feed");
+        List<String> followersAlias = feedUpdater.getFollowers();
+        // Add each user into the TableWriteItems object
+        for (String alias : followersAlias) {
+            Item feedStatus = new Item().withPrimaryKey("user_handle", alias, "date", feedUpdater.getDatetime())
+                    .with("postedBy", feedUpdater.getAlias())
+                    .with("post", feedUpdater.getPost())
+                    .with("mentions", feedUpdater.getMentions())
+                    .with("urls", feedUpdater.getUrls());
+
+            items.addItemToPut(feedStatus);
+
+            // 25 is the maximum number of items allowed in a single batch write.
+            // Attempting to write more than 25 items will result in an exception being thrown
+            if (items.getItemsToPut() != null && items.getItemsToPut().size() == followersAlias.size()) {
+                loopBatchWrite(items);
+                items = new TableWriteItems("feed");
+            }
+        }
+
+        // Write any leftover items
+        if (items.getItemsToPut() != null && items.getItemsToPut().size() > 0) {
+            loopBatchWrite(items);
+        }
+    }
+
+    private void loopBatchWrite(TableWriteItems items) {
+
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withRegion("us-west-2").build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+
+        // The 'dynamoDB' object is of type DynamoDB and is declared statically in this example
+        BatchWriteItemOutcome outcome = dynamoDB.batchWriteItem(items);
+
+        // Check the outcome for items that didn't make it onto the table
+        // If any were not added to the table, try again to write the batch
+        while (outcome.getUnprocessedItems().size() > 0) {
+            Map<String, List<WriteRequest>> unprocessedItems = outcome.getUnprocessedItems();
+            outcome = dynamoDB.batchWriteItemUnprocessed(unprocessedItems);
+        }
+    }
+
+
 
     public static class DynamoFeedStatus {
         //new Status("post", "user", "datetime", "url string list", "mentions string list")
