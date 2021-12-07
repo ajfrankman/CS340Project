@@ -109,8 +109,9 @@ public class UserService {
         String lastFollowerAlias = null;
         Boolean hasMorePages = true;
         while (hasMorePages) {
+            // TODO grab 10000 at once instead
             Pair<List<String>, Boolean> followersBatchResult =
-                    currentFactory.getFollowDAO().getFollowersAlias(simpleStatus.getAlias(), lastFollowerAlias, 10);
+                    currentFactory.getFollowDAO().getFollowersAlias(simpleStatus.getAlias(), lastFollowerAlias, 25);
             hasMorePages = followersBatchResult.getSecond();
             if(followersBatchResult.getFirst().size() > 0) {
                 // set for next getFollowersAlias call
@@ -223,9 +224,6 @@ public class UserService {
         AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
         SendMessageResult sendMessageResult = sqs.sendMessage(send_msg_request);
 
-        String msgId = sendMessageResult.getMessageId();
-        System.out.println("Message ID: " + msgId);
-
         return new PostStatusResponse();
 //        Pair<List<String>, Boolean> resultPair = currentFactory.getFollowDAO().getFollowersAlias(postStatusRequest.getStatus().getUser().getAlias(), null, 10);
 //        List<String> aliasList = resultPair.getFirst();
@@ -247,42 +245,42 @@ public class UserService {
         currentFactory.getFeedDAO().addStatusBatch(feedUpdater);
     }
 
-//    public static void main(String[] args) {
-//// Get instance of DAOs by way of the Abstract Factory Pattern
-//        DynamoDBFactory daoFactory = DynamoDBFactory.getInstance();
-//        daoFactory.getUserDAO();
-//        UserDAO userDAO = daoFactory.getUserDAO();
-//        FollowDAO followDAO = daoFactory.getFollowDAO();
-//
-//
-//        List<String> followers = new ArrayList<>();
-//        List<User> users = new ArrayList<>();
-//
-//        String MALE_IMAGE_URL = "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png";
-//
-//        // Iterate over the number of users you will create
-//        for (int i = 1; i <= 100; i++) {
-//
-//            String name = "Gal " + i;
-//            String alias = "@gal" + i;
-//
-//
-//            // Note that in this example, a UserDTO only has a name and an alias.
-//            // The url for the profile image can be derived from the alias in this example
-//            User user = new User(name, "lastName", alias, MALE_IMAGE_URL);
-//            users.add(user);
-//
-//            // Note that in this example, to represent a follows relationship, only the aliases
-//            // of the two users are needed
-//            followers.add(alias);
-//        }
-//
-//        // Call the DAOs for the database logic
-//        if (users.size() > 0) {
-//            userDAO.addUserBatch(users);
-//        }
-//        if (followers.size() > 0) {
-//            followDAO.addFollowersBatch(followers, "@superGal");
-//        }        // UserDAO add batch
-//    }
+    public static void main(String[] args) {
+// Get instance of DAOs by way of the Abstract Factory Pattern
+        DynamoDBFactory daoFactory = DynamoDBFactory.getInstance();
+        daoFactory.getUserDAO();
+        UserDAO userDAO = daoFactory.getUserDAO();
+        FollowDAO followDAO = daoFactory.getFollowDAO();
+
+
+        List<String> followers = new ArrayList<>();
+        List<User> users = new ArrayList<>();
+
+        String MALE_IMAGE_URL = "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png";
+
+        // Iterate over the number of users you will create
+        for (int i = 1; i <= 100; i++) {
+
+            String name = "Gal " + i;
+            String alias = "@gal" + i;
+
+
+            // Note that in this example, a UserDTO only has a name and an alias.
+            // The url for the profile image can be derived from the alias in this example
+            User user = new User(name, "lastName", alias, MALE_IMAGE_URL);
+            users.add(user);
+
+            // Note that in this example, to represent a follows relationship, only the aliases
+            // of the two users are needed
+            followers.add(alias);
+        }
+
+        // Call the DAOs for the database logic
+        if (users.size() > 0) {
+            userDAO.addUserBatch(users);
+        }
+        if (followers.size() > 0) {
+            followDAO.addFollowersBatch(followers, "@superGal");
+        }        // UserDAO add batch
+    }
 }
